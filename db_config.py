@@ -20,6 +20,7 @@ def get_db_connection():
             'user': DB_USER,
             'password': DB_PASSWORD,
             'database': DB_NAME,
+            'port': int(os.environ.get("DB_PORT", 3306)),
             'connection_timeout': int(os.environ.get("DB_TIMEOUT", 10))
         }
 
