@@ -49,7 +49,7 @@ def calculate_grade(marks):
     elif marks >= 40:
         return "D"
     else:
-        return "Fail"
+        return "F"
 
 def create_student_reports_view():
     """Create the required view for student reports if it doesn't exist."""
