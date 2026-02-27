@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}View Students - College System{% endblock %}
+
+{% block content %}
+<div
+    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+    <div>
+        <h2 style="margin: 0;">Student Records</h2>
+    </div>
+
+    <div style="flex: 1; display: flex; justify-content: flex-end;">
+        <form method="GET" action="{{ url_for('view_students') }}" class="styled-form" style="margin: 0;">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <label for="dept_id"
+                    style="color: var(--text-muted); margin: 0; white-space: nowrap; font-size: 0.85rem;">Filter:</label>
+                <select id="dept_id" name="dept_id" onchange="this.form.submit()"
+                    style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; min-width: 200px; width: auto; background-position: right 0.75rem center;">
+                    <option value="">All Branches</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.dept_id }}" {% if current_dept_id|string==dept.dept_id|string %}selected{%
+                        endif %}>{{ dept.dept_name }}</option>
+                    {% endfor %}
+                </select>
+                {% if current_dept_id %}
+                <a href="{{ url_for('view_students') }}" class="btn btn-secondary btn-sm"
+                    style="white-space: nowrap; height: 100%; display: flex; align-items: center;">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div>
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">+ Add New Student</a>
+    </div>
+</div>
+
+{% for branch, divisions in reports.items() %}
+<div class="list-container mb-4">
+    <div class="list-header">
+        <h3>{{ branch }}</h3>
+    </div>
+    {% for division, branch_students in divisions.items() %}
+    <h4 class="division-header">Division {{ division }}</h4>
+    <div class="table-responsive">
+        <table class="styled-table" style="margin-bottom: 0;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                    <th>Grade</th>
+                    <th>Attendance %</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in branch_students %}
+                <tr>
+                    <td>{{ report.student_id }}</td>
+                    <td><strong>{{ report.name }}</strong></td>
+                    <td>
+                        {{ report.total_marks_obtained }} / {{ report.max_possible_marks }}
+                        <br>
+                        <small class="text-muted">{{ "%.2f"|format(report.percentage) }}%</small>
+                    </td>
+                    <td>
+                        {% if report.percentage >= 90 %}
+                        <span class="badge bg-success">A</span>
+                        {% elif report.percentage >= 75 %}
+                        <span class="badge bg-primary">B</span>
+                        {% elif report.percentage >= 60 %}
+                        <span class="badge bg-info">C</span>
+                        {% elif report.percentage >= 40 %}
+                        <span class="badge bg-warning">D</span>
+                        {% else %}
+                        <span class="badge bg-danger">F</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar {% if report.attendance_percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                                style="width: {{ report.attendance_percentage }}%">
+                            </div>
+                            <span>{{ report.attendance_percentage }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('view_student_marks', id=report.student_id) }}"
+                                class="btn btn-sm btn-info" style="color: white">Marks</a>
+                            <a href="{{ url_for('update_student', id=report.student_id) }}"
+                                class="btn btn-sm btn-primary">Edit</a>
+                            <form action="{{ url_for('delete_student', id=report.student_id) }}" method="POST"
+                                style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Delete this student?')">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="list-container">
+    <div class="text-center" style="padding: 2rem;">No students found.</div>
+</div>
+{% endfor %}
+{% endblock %}

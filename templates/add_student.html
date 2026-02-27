@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Student - College System{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Register New Student</h2>
+        <p>Enter the details below to add a student</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('add_student') }}" class="styled-form">
+        <div class="form-group row">
+            <div class="col">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="John Doe">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="john@example.com">
+            </div>
+            <div class="col">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" name="phone" required placeholder="1234567890">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="department_id">Branch</label>
+                <select id="department_id" name="department_id" required>
+                    <option value="" disabled selected>Select a branch</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.dept_id }}">{{ dept.dept_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <label for="division">Division / Class</label>
+                <select id="division" name="division" required>
+                    <option value="A" selected>Div A</option>
+                    <option value="B">Div B</option>
+                    <option value="C">Div C</option>
+                    <option value="D">Div D</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('view_students') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Add Student</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

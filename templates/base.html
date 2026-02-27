@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}College Management System{% endblock %}</title>
+    <!-- Modern clean fonts from Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        // Set Theme dynamically from local storage before rendering layout (FOUC preventer)
+        const savedTheme = localStorage.getItem('theme') || 'dark'; // default to dark
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+
+<body>
+    {% if session.get('logged_in') %}
+    <nav class="navbar">
+        <div class="nav-brand">College System</div>
+        <div class="nav-links">
+            <button id="themeToggle" class="btn btn-secondary btn-sm"
+                style="margin-right: 0.5rem; border-color: transparent; background: transparent; font-size: 1.25rem; padding: 0.25rem 0.5rem; box-shadow: none;"
+                title="Toggle Theme">
+                <span id="themeIcon">☀️</span>
+            </button>
+            <a href="{{ url_for('dashboard') }}"
+                class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
+            <a href="{{ url_for('view_students') }}"
+                class="{{ 'active' if request.endpoint in ['view_students', 'add_student', 'update_student'] else '' }}">Students</a>
+            <a href="{{ url_for('view_subjects') }}"
+                class="{{ 'active' if request.endpoint == 'view_subjects' else '' }}">Subjects</a>
+            <a href="{{ url_for('attendance') }}"
+                class="{{ 'active' if request.endpoint == 'attendance' else '' }}">Attendance</a>
+            <a href="{{ url_for('add_marks') }}" class="{{ 'active' if request.endpoint == 'add_marks' else '' }}">Add
+                Marks</a>
+            <a href="{{ url_for('view_faculty') }}"
+                class="{{ 'active' if request.endpoint in ['view_faculty', 'add_faculty'] else '' }}">Faculty</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 College Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const themeIconSpan = document.getElementById('themeIcon');
+
+        if (themeToggleBtn) {
+            // Set initial icon based on the instantaneous <head> logic
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            themeIconSpan.innerText = currentTheme === 'dark' ? '☀️' : '🌙';
+
+            themeToggleBtn.addEventListener('click', () => {
+                const activeTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeIconSpan.innerText = newTheme === 'dark' ? '☀️' : '🌙';
+            });
+        }
+    </script>
+</body>
+
+</html>

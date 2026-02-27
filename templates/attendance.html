@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Attendance - College System{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 100%;">
+    <div class="form-header">
+        <h2>Record Attendance</h2>
+        <p>Update student attendance records</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('attendance') }}" class="styled-form">
+        <div class="form-group row">
+            <div class="col">
+                <label for="department_id">Branch</label>
+                <select id="department_id" name="department_id" required onchange="loadDivisionOptions()">
+                    <option value="" disabled selected>Select a branch first</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.dept_id }}">{{ dept.dept_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <label for="division">Division / Class</label>
+                <select id="division" name="division" required disabled onchange="loadStudents()">
+                    <option value="" disabled selected>Select a branch first</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="student_id">Assign Student</label>
+                <select id="student_id" name="student_id" required disabled>
+                    <option value="" disabled selected>Select a division first</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <h4
+                style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                Subject Attendance</h4>
+            <div id="subjects_container" style="display: flex; flex-direction: column; gap: 1rem;">
+                <p class="text-muted" style="font-size: 0.85rem;">Subjects will auto-load when you select a branch.</p>
+            </div>
+        </div>
+
+        <script>
+            async function loadDivisionOptions() {
+                const deptId = document.getElementById('department_id').value;
+                const divSelect = document.getElementById('division');
+                const studentSelect = document.getElementById('student_id');
+                const subjectsContainer = document.getElementById('subjects_container');
+
+                // Reset sub-dropdowns
+                divSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+                divSelect.disabled = true;
+                studentSelect.innerHTML = '<option value="" disabled selected>Select a division first</option>';
+                studentSelect.disabled = true;
+                subjectsContainer.innerHTML = ''; // Clear prior fields
+
+                if (!deptId) return;
+
+                // Fetch divisions
+                try {
+                    const res = await fetch(`/api/divisions/${deptId}`);
+                    const divs = await res.json();
+                    divSelect.innerHTML = '<option value="" disabled selected>Select Division</option>';
+                    divs.forEach(d => {
+                        divSelect.innerHTML += `<option value="${d}">${d}</option>`;
+                    });
+                    divSelect.disabled = false;
+                } catch (e) { console.error('Error fetching divisions', e); }
+
+                // Fetch subjects and generate bulk input rows
+                try {
+                    const res2 = await fetch(`/api/subjects/${deptId}`);
+                    const subjects = await res2.json();
+                    subjects.forEach(s => {
+                        subjectsContainer.innerHTML += `
+                        <div class="form-group row" style="align-items: center; background: #F8FAFC; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 0;">
+                            <div class="col" style="flex: 2; min-width: 200px;">
+                                <label style="margin: 0; font-weight: 600;">${s.subject_name}</label>
+                            </div>
+                            <div class="col" style="flex: 1; min-width: 120px;">
+                                <label style="font-size: 0.75rem;">Days Present</label>
+                                <input type="number" name="present_${s.subject_id}" min="0" placeholder="0" required style="padding: 0.5rem; font-size: 0.9rem;">
+                            </div>
+                            <div class="col" style="flex: 1; min-width: 120px;">
+                                <label style="font-size: 0.75rem;">Total Days</label>
+                                <input type="number" name="total_${s.subject_id}" min="1" placeholder="Max" required style="padding: 0.5rem; font-size: 0.9rem;">
+                            </div>
+                        </div>`;
+                    });
+                } catch (e) { console.error('Error fetching subjects', e); }
+            }
+
+            async function loadStudents() {
+                const deptId = document.getElementById('department_id').value;
+                const div = document.getElementById('division').value;
+                const studentSelect = document.getElementById('student_id');
+
+                studentSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+                studentSelect.disabled = true;
+
+                if (!deptId || !div) return;
+
+                try {
+                    const res = await fetch(`/api/students/${deptId}/${div}`);
+                    const students = await res.json();
+                    studentSelect.innerHTML = '<option value="" disabled selected>Select Student</option>';
+                    students.forEach(s => {
+                        studentSelect.innerHTML += `<option value="${s.student_id}">${s.name}</option>`;
+                    });
+                    studentSelect.disabled = false;
+                } catch (e) { console.error('Error fetching students', e); }
+            }
+        </script>
+
+        <div class="form-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Attendance</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

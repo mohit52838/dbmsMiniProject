@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Marks Details - College System{% endblock %}
+
+{% block content %}
+<div class="list-container">
+    <div class="list-header">
+        <h2>Marks Breakdown for: {{ student.name }}</h2>
+        <a href="{{ url_for('view_students') }}" class="btn btn-secondary">Back to Students</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Internal Marks</th>
+                    <th>External Marks</th>
+                    <th>Total</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mark in marks %}
+                <tr>
+                    <td><strong>{{ mark.subject_name }}</strong></td>
+                    <td>{{ mark.internal_marks }}</td>
+                    <td>{{ mark.external_marks }}</td>
+                    <td>{{ mark.total }} / 100</td>
+                    <td>
+                        {% if mark.grade == 'A' %}
+                        <span class="badge bg-success">A</span>
+                        {% elif mark.grade == 'B' %}
+                        <span class="badge bg-primary">B</span>
+                        {% elif mark.grade == 'C' %}
+                        <span class="badge bg-info">C</span>
+                        {% elif mark.grade == 'D' %}
+                        <span class="badge bg-warning">D</span>
+                        {% else %}
+                        <span class="badge bg-danger">F</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No marks recorded for this student yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Student - College System{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Update Student: {{ student.name }}</h2>
+        <p>Modify the details below and save</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('update_student', id=student.student_id) }}" class="styled-form">
+        <div class="form-group row">
+            <div class="col">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required value="{{ student.name }}">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required value="{{ student.email }}">
+            </div>
+            <div class="col">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" name="phone" required value="{{ student.phone }}">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="department_id">Branch</label>
+                <select id="department_id" name="department_id" required>
+                    {% for dept in departments %}
+                    <option value="{{ dept.dept_id }}" {% if student.dept_id==dept.dept_id %}selected{% endif %}>
+                        {{ dept.dept_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <label for="division">Division / Class</label>
+                <select id="division" name="division" required>
+                    <option value="A" {% if student.division=='A' %}selected{% endif %}>Div A</option>
+                    <option value="B" {% if student.division=='B' %}selected{% endif %}>Div B</option>
+                    <option value="C" {% if student.division=='C' %}selected{% endif %}>Div C</option>
+                    <option value="D" {% if student.division=='D' %}selected{% endif %}>Div D</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('view_students') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Student</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

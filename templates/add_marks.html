@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Marks - College System{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 100%;">
+    <div class="form-header">
+        <h2>Enter Student Marks</h2>
+        <p>Input marks to calculate grades automatically</p>
+    </div>
+
+    <div class="grade-legend mb-4">
+        <h4>Grading Scale:</h4>
+        <div class="legend-items">
+            <span class="badge grade-a">90+ : A</span>
+            <span class="badge grade-b">75-89 : B</span>
+            <span class="badge grade-c">60-74 : C</span>
+            <span class="badge grade-d">40-59 : D</span>
+            <span class="badge grade-fail">&lt;40 : Fail</span>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('add_marks') }}" class="styled-form">
+        <div class="form-group row">
+            <div class="col">
+                <label for="department_id">Branch</label>
+                <select id="department_id" name="department_id" required onchange="loadDivisionOptions()">
+                    <option value="" disabled selected>Select a branch first</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.dept_id }}">{{ dept.dept_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col">
+                <label for="division">Division / Class</label>
+                <select id="division" name="division" required disabled onchange="loadStudents()">
+                    <option value="" disabled selected>Select a branch first</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="student_id">Assign Student</label>
+                <select id="student_id" name="student_id" required disabled>
+                    <option value="" disabled selected>Select a division first</option>
+                </select>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">Subject Marks
+        </h3>
+        <p class="text-muted" style="font-size: 0.85rem;">Subjects will auto-load when you select a branch.</p>
+
+        <div id="dynamic-subjects-container">
+            <!-- JS will spawn the inputs here! -->
+        </div>
+
+        <script>
+            async function loadDivisionOptions() {
+                const deptId = document.getElementById('department_id').value;
+                const divSelect = document.getElementById('division');
+                const studentSelect = document.getElementById('student_id');
+                const subjectsContainer = document.getElementById('dynamic-subjects-container');
+
+                // Reset sub-dropdowns
+                divSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+                divSelect.disabled = true;
+                studentSelect.innerHTML = '<option value="" disabled selected>Select a division first</option>';
+                studentSelect.disabled = true;
+                subjectsContainer.innerHTML = ''; // Clear prior nested inputs
+
+                if (!deptId) return;
+
+                // Fetch divisions (hardcoded API currently but handles network format)
+                try {
+                    const res = await fetch(`/api/divisions/${deptId}`);
+                    const divs = await res.json();
+                    divSelect.innerHTML = '<option value="" disabled selected>Select Division</option>';
+                    divs.forEach(d => {
+                        divSelect.innerHTML += `<option value="${d}">${d}</option>`;
+                    });
+                    divSelect.disabled = false;
+                } catch (e) { console.error('Error fetching divisions', e); }
+
+                // Fetch subjects for this branch to generate the 5 bulk lines!
+                try {
+                    const res2 = await fetch(`/api/subjects/${deptId}`);
+                    const subjects = await res2.json();
+                    subjects.forEach(s => {
+                        subjectsContainer.innerHTML += `
+                <div class="form-group row mb-3" style="align-items: center;">
+                    <div class="col-8">
+                        <label>${s.subject_name}</label>
+                    </div>
+                    <div class="col-4">
+                        <input type="number" name="marks_${s.subject_id}" min="0" max="100" placeholder="0-100" required style="width: 100%;">
+                    </div>
+                </div>`;
+                    });
+                } catch (e) { console.error('Error fetching subjects', e); }
+            }
+
+            async function loadStudents() {
+                const deptId = document.getElementById('department_id').value;
+                const div = document.getElementById('division').value;
+                const studentSelect = document.getElementById('student_id');
+
+                studentSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+                studentSelect.disabled = true;
+
+                if (!deptId || !div) return;
+
+                try {
+                    const res = await fetch(`/api/students/${deptId}/${div}`);
+                    const students = await res.json();
+                    studentSelect.innerHTML = '<option value="" disabled selected>Select Student</option>';
+                    students.forEach(s => {
+                        studentSelect.innerHTML += `<option value="${s.student_id}">${s.name}</option>`;
+                    });
+                    studentSelect.disabled = false;
+                } catch (e) { console.error('Error fetching students', e); }
+            }
+        </script>
+
+        <div class="form-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Submit Marks</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
