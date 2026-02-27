@@ -3,19 +3,19 @@
 {% block title %}View Students - College System{% endblock %}
 
 {% block content %}
-<div
-    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
-    <div>
+<div class="page-header"
+    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px;">
         <h2 style="margin: 0;">Student Records</h2>
     </div>
 
-    <div style="flex: 1; display: flex; justify-content: flex-end;">
-        <form method="GET" action="{{ url_for('view_students') }}" class="styled-form" style="margin: 0;">
-            <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <div style="flex: 2; min-width: 280px; display: flex; justify-content: flex-end;">
+        <form method="GET" action="{{ url_for('view_students') }}" class="styled-form" style="margin: 0; width: 100%;">
+            <div style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
                 <label for="dept_id"
                     style="color: var(--text-muted); margin: 0; white-space: nowrap; font-size: 0.85rem;">Filter:</label>
                 <select id="dept_id" name="dept_id" onchange="this.form.submit()"
-                    style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; min-width: 200px; width: auto; background-position: right 0.75rem center;">
+                    style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; flex: 1; min-width: 150px; background-position: right 0.75rem center;">
                     <option value="">All Branches</option>
                     {% for dept in departments %}
                     <option value="{{ dept.dept_id }}" {% if current_dept_id|string==dept.dept_id|string %}selected{%
@@ -30,8 +30,9 @@
         </form>
     </div>
 
-    <div>
-        <a href="{{ url_for('add_student') }}" class="btn btn-primary">+ Add New Student</a>
+    <div style="flex: 1; min-width: 200px; display: flex; justify-content: flex-end;">
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary" style="width: 100%; justify-content: center;">+
+            Add New Student</a>
     </div>
 </div>
 

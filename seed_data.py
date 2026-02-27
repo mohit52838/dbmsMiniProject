@@ -1,12 +1,11 @@
 import mysql.connector
+from db_config import get_db_connection
 
 def reset_and_seed_data():
-    conn = mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='M@ratha12',
-        database='college_management'
-    )
+    conn = get_db_connection()
+    if not conn:
+        print("Failed to connect to database.")
+        return
     cursor = conn.cursor()
 
     try:

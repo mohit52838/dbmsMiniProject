@@ -7,7 +7,7 @@
     <title>{% block title %}College Management System{% endblock %}</title>
     <!-- Modern clean fonts from Google -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
     <script>
         // Set Theme dynamically from local storage before rendering layout (FOUC preventer)
         const savedTheme = localStorage.getItem('theme') || 'dark'; // default to dark
@@ -18,8 +18,14 @@
 <body>
     {% if session.get('logged_in') %}
     <nav class="navbar">
-        <div class="nav-brand">College System</div>
-        <div class="nav-links">
+        <div class="nav-header"
+            style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <div class="nav-brand">College System</div>
+            <button class="mobile-toggle" id="mobileMenuBtn" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="nav-links" id="navLinks">
             <button id="themeToggle" class="btn btn-secondary btn-sm"
                 style="margin-right: 0.5rem; border-color: transparent; background: transparent; font-size: 1.25rem; padding: 0.25rem 0.5rem; box-shadow: none;"
                 title="Toggle Theme">
@@ -66,6 +72,15 @@
     <script>
         const themeToggleBtn = document.getElementById('themeToggle');
         const themeIconSpan = document.getElementById('themeIcon');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                navLinks.classList.toggle('show');
+                mobileMenuBtn.classList.toggle('active');
+            });
+        }
 
         if (themeToggleBtn) {
             // Set initial icon based on the instantaneous <head> logic

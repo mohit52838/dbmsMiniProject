@@ -1,0 +1,23 @@
+Table department:
+  Local: ['dept_id', 'dept_name']
+  Cloud: ['dept_id', 'dept_name']
+Table faculty:
+  Local: ['faculty_id', 'name', 'email', 'phone', 'dept_id']
+  Cloud: ['faculty_id', 'name', 'email', 'phone', 'dept_id']
+Table subject:
+  Local: ['subject_id', 'subject_name', 'faculty_id', 'dept_id']
+  Cloud: ['subject_id', 'subject_name', 'dept_id', 'faculty_id']
+  *** MISMATCH ***
+Table student:
+  Local: ['student_id', 'name', 'email', 'phone', 'gender', 'dob', 'dept_id', 'division']
+  Cloud: ['student_id', 'name', 'email', 'phone', 'gender', 'dob', 'dept_id', 'division']
+Table attendance:
+  Local: ['attendance_id', 'student_id', 'subject_id', 'date', 'status']
+  Cloud: ['attendance_id', 'student_id', 'subject_id', 'date', 'status']
+Table marks:
+  Local: ['mark_id', 'student_id', 'subject_id', 'internal_marks', 'external_marks', 'total', 'grade']
+  Cloud: ['mark_id', 'student_id', 'subject_id', 'internal_marks', 'external_marks', 'total', 'grade']
+Table admin:
+  Local: ['admin_id', 'username', 'password']
+  Cloud: ['admin_id', 'username', 'password', 'email']
+  *** MISMATCH ***
