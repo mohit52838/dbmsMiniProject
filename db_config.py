@@ -67,18 +67,20 @@ def create_student_reports_view():
         s.name, 
         d.dept_name as branch,
         s.division,
-        COALESCE(SUM(m.total), 0) AS total_marks_obtained,
-        COUNT(m.mark_id) * 100 AS max_possible_marks,
-        CASE WHEN COUNT(m.mark_id) > 0 THEN (COALESCE(SUM(m.total), 0) / (COUNT(m.mark_id) * 100)) * 100 ELSE 0 END as percentage,
-        (SELECT 
-            (SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) / COUNT(*)) * 100 
-         FROM attendance 
-         WHERE student_id = s.student_id AND status IS NOT NULL
-        ) AS attendance_percentage
+        COALESCE(m.total_marks_obtained, 0) AS total_marks_obtained,
+        COALESCE(m.max_possible_marks, 0) AS max_possible_marks,
+        CASE WHEN m.max_possible_marks > 0 THEN (m.total_marks_obtained / m.max_possible_marks) * 100 ELSE 0 END as percentage,
+        COALESCE(a.attendance_percentage, 0) AS attendance_percentage
     FROM student s
-    LEFT JOIN marks m ON s.student_id = m.student_id
     LEFT JOIN department d ON s.dept_id = d.dept_id
-    GROUP BY s.student_id, s.name, d.dept_name, s.division;
+    LEFT JOIN (
+        SELECT student_id, SUM(total) as total_marks_obtained, COUNT(mark_id) * 100 as max_possible_marks
+        FROM marks GROUP BY student_id
+    ) m ON s.student_id = m.student_id
+    LEFT JOIN (
+        SELECT student_id, (SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) / COUNT(*)) * 100 as attendance_percentage
+        FROM attendance WHERE status IS NOT NULL GROUP BY student_id
+    ) a ON s.student_id = a.student_id;
     """
     
     try:
