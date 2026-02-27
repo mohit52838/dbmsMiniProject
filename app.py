@@ -490,14 +490,24 @@ def view_student_marks(id):
             cursor.execute("SELECT name FROM student WHERE student_id=%s", (id,))
             student_info = cursor.fetchone()
             
-            # Fetch detailed subject-level marks
+            # Fetch detailed subject-level marks, grouping them safely just in case there are duplicates
             cursor.execute("""
-                SELECT s.subject_name, m.internal_marks, m.external_marks, m.total, m.grade
+                SELECT 
+                    s.subject_name, 
+                    SUM(m.internal_marks) as internal_marks, 
+                    SUM(m.external_marks) as external_marks, 
+                    SUM(m.total) as total, 
+                    MAX(m.grade) as grade
                 FROM marks m
                 JOIN subject s ON m.subject_id = s.subject_id
                 WHERE m.student_id = %s
+                GROUP BY s.subject_name
             """, (id,))
             marks_details = cursor.fetchall()
+
+            # Recalculate the grade based on the newly summed actual total
+            for row in marks_details:
+                row['grade'] = db_config.calculate_grade(row['total'])
         except Exception as e:
             flash(f'Error fetching marks details: {e}', 'danger')
         finally:
