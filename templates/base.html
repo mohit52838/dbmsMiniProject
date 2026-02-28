@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
     <script>
         // Set Theme dynamically from local storage before rendering layout (FOUC preventer)
-        const savedTheme = localStorage.getItem('theme') || 'dark'; // default to dark
+        const savedTheme = localStorage.getItem('theme') || 'light'; // default to light
         document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
 </head>
@@ -39,6 +39,8 @@
                 class="{{ 'active' if request.endpoint == 'view_subjects' else '' }}">Subjects</a>
             <a href="{{ url_for('attendance') }}"
                 class="{{ 'active' if request.endpoint == 'attendance' else '' }}">Attendance</a>
+            <a href="{{ url_for('view_fees') }}"
+                class="{{ 'active' if request.endpoint in ['view_fees', 'add_fees'] else '' }}">Fees</a>
             <a href="{{ url_for('add_marks') }}" class="{{ 'active' if request.endpoint == 'add_marks' else '' }}">Add
                 Marks</a>
             <a href="{{ url_for('view_faculty') }}"

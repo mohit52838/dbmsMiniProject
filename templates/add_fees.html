@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
 
-{% block title %}Mark Attendance - College System{% endblock %}
+{% block title %}Add Fees - College System{% endblock %}
 
 {% block content %}
 <div class="form-container" style="max-width: 100%;">
     <div class="form-header">
-        <h2>Record Attendance</h2>
-        <p>Update student attendance records</p>
+        <h2>Record Student Fees</h2>
+        <p>Input fee details to calculate remaining balance automatically</p>
     </div>
 
-    <form method="POST" action="{{ url_for('attendance') }}" class="styled-form">
+    <form method="POST" action="{{ url_for('add_fees') }}" class="styled-form">
         <div class="form-group row">
             <div class="col">
                 <label for="department_id">Branch</label>
                 <select id="department_id" name="department_id" required onchange="loadDivisionOptions()">
                     <option value="" disabled selected>Select a branch first</option>
                     {% for dept in departments %}
-                    <option value="{{ dept.dept_id }}">{{ dept.dept_name }}</option>
+                    <option value="{{ dept.dept_id }}" data-name="{{ dept.dept_name }}">{{ dept.dept_name }}</option>
                     {% endfor %}
                 </select>
+                <!-- Hidden input to send actual branch name to backend -->
+                <input type="hidden" id="branch_name" name="branch_name">
             </div>
             <div class="col">
-                <label for="division">Division / Class</label>
-                <select id="division" name="division" required disabled onchange="loadStudents()">
+                <label for="division">Division / Class Year</label>
+                <select id="division" name="class_year" required disabled onchange="loadStudents()">
                     <option value="" disabled selected>Select a branch first</option>
                 </select>
             </div>
@@ -37,28 +39,38 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <h4
-                style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
-                Subject Attendance</h4>
-            <div id="subjects_container" style="display: flex; flex-direction: column; gap: 1rem;">
-                <p class="text-muted" style="font-size: 0.85rem;">Subjects will auto-load when you select a branch.</p>
+        <h3 style="margin-top: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">Fee Details</h3>
+
+        <div class="form-group row mb-3" style="align-items: center; margin-top: 1.5rem;">
+            <div class="col">
+                <label for="total_fees">Total Fees Configured (₹)</label>
+                <input type="number" id="total_fees" name="total_fees" min="0" step="0.01" placeholder="e.g. 100000"
+                    required>
+            </div>
+            <div class="col">
+                <label for="amount_paid">Amount Paid (₹)</label>
+                <input type="number" id="amount_paid" name="amount_paid" min="0" step="0.01" placeholder="e.g. 50000"
+                    required>
             </div>
         </div>
 
         <script>
             async function loadDivisionOptions() {
-                const deptId = document.getElementById('department_id').value;
+                const deptSelect = document.getElementById('department_id');
+                const deptId = deptSelect.value;
+
+                // Update hidden branch name
+                const selectedOption = deptSelect.options[deptSelect.selectedIndex];
+                document.getElementById('branch_name').value = selectedOption.getAttribute('data-name');
+
                 const divSelect = document.getElementById('division');
                 const studentSelect = document.getElementById('student_id');
-                const subjectsContainer = document.getElementById('subjects_container');
 
                 // Reset sub-dropdowns
                 divSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
                 divSelect.disabled = true;
                 studentSelect.innerHTML = '<option value="" disabled selected>Select a division first</option>';
                 studentSelect.disabled = true;
-                subjectsContainer.innerHTML = ''; // Clear prior fields
 
                 if (!deptId) return;
 
@@ -66,34 +78,12 @@
                 try {
                     const res = await fetch(`/api/divisions/${deptId}`);
                     const divs = await res.json();
-                    divSelect.innerHTML = '<option value="" disabled selected>Select Division</option>';
+                    divSelect.innerHTML = '<option value="" disabled selected>Select Division/Class Year</option>';
                     divs.forEach(d => {
                         divSelect.innerHTML += `<option value="${d}">${d}</option>`;
                     });
                     divSelect.disabled = false;
                 } catch (e) { console.error('Error fetching divisions', e); }
-
-                // Fetch subjects and generate bulk input rows
-                try {
-                    const res2 = await fetch(`/api/subjects/${deptId}`);
-                    const subjects = await res2.json();
-                    subjects.forEach(s => {
-                        subjectsContainer.innerHTML += `
-                        <div class="form-group row" style="align-items: center; background: var(--div-header-bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 0;">
-                            <div class="col" style="flex: 2; min-width: 200px;">
-                                <label style="margin: 0; font-weight: 600;">${s.subject_name}</label>
-                            </div>
-                            <div class="col" style="flex: 1; min-width: 120px;">
-                                <label style="font-size: 0.75rem;">Days Present</label>
-                                <input type="number" name="present_${s.subject_id}" min="0" placeholder="0" required style="padding: 0.5rem; font-size: 0.9rem;">
-                            </div>
-                            <div class="col" style="flex: 1; min-width: 120px;">
-                                <label style="font-size: 0.75rem;">Total Days</label>
-                                <input type="number" name="total_${s.subject_id}" min="1" placeholder="Max" required style="padding: 0.5rem; font-size: 0.9rem;">
-                            </div>
-                        </div>`;
-                    });
-                } catch (e) { console.error('Error fetching subjects', e); }
             }
 
             async function loadStudents() {
@@ -119,8 +109,8 @@
         </script>
 
         <div class="form-actions">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Save Attendance</button>
+            <a href="{{ url_for('view_fees') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Fee Record</button>
         </div>
     </form>
 </div>

@@ -562,6 +562,167 @@ def api_subjects(dept_id):
             conn.close()
     return jsonify(subjects)
 
+# ==========================================
+# FEES MANAGEMENT ENDPOINTS
+# ==========================================
+
+@app.route('/add_fees', methods=['GET', 'POST'])
+def add_fees():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        student_id = request.form.get('student_id')
+        branch = request.form.get('branch_name') # we'll pass the text value directly from frontend or fetch it
+        class_year = request.form.get('class_year', 'A') # Using division as class_year if mapping directly
+        
+        try:
+            total_fees = float(request.form.get('total_fees', 0.0))
+            amount_paid = float(request.form.get('amount_paid', 0.0))
+        except ValueError:
+            flash('Invalid fee amounts entered.', 'danger')
+            return redirect(url_for('add_fees'))
+            
+        remaining_amount = total_fees - amount_paid
+        if amount_paid >= total_fees:
+            status = 'Paid'
+        elif amount_paid == 0:
+            status = 'Unpaid'
+        else:
+            status = 'Partial'
+            
+        import datetime
+        payment_date = datetime.date.today().strftime('%Y-%m-%d')
+        
+        conn = db_config.get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            try:
+                # If a fee record exists for this student, update it. Otherwise, insert.
+                # Assuming 1 fee record per student per year (simplified to 1 per student here)
+                cursor.execute("SELECT fee_id FROM fees WHERE student_id = %s", (student_id,))
+                existing_fee = cursor.fetchone()
+                
+                if existing_fee:
+                    query = """
+                    UPDATE fees 
+                    SET total_fees=%s, amount_paid=%s, remaining_amount=%s, status=%s, payment_date=%s
+                    WHERE student_id=%s
+                    """
+                    cursor.execute(query, (total_fees, amount_paid, remaining_amount, status, payment_date, student_id))
+                    flash('Fee record updated successfully!', 'success')
+                else:
+                    query = """
+                    INSERT INTO fees 
+                    (student_id, branch, class_year, total_fees, amount_paid, remaining_amount, status, payment_date) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(query, (student_id, branch, class_year, total_fees, amount_paid, remaining_amount, status, payment_date))
+                    flash('Fee record added successfully!', 'success')
+                
+                conn.commit()
+                return redirect(url_for('view_fees'))
+            except Exception as e:
+                flash(f'Error saving fee record: {e}', 'danger')
+                conn.rollback()
+            finally:
+                cursor.close()
+                conn.close()
+                
+    departments = []
+    conn = db_config.get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("SELECT dept_id, dept_name FROM department")
+            departments = cursor.fetchall()
+        except Exception as e:
+            print(f"Error fetching departments: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return render_template('add_fees.html', departments=departments)
+
+@app.route('/view_fees')
+def view_fees():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    
+    branch_filter = request.args.get('branch')
+    class_filter = request.args.get('class_year')
+    
+    conn = db_config.get_db_connection()
+    fees_data = {}
+    departments = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("SELECT dept_id, dept_name FROM department ORDER BY dept_name")
+            departments = cursor.fetchall()
+            
+            query = """
+                SELECT f.*, s.name as student_name
+                FROM fees f
+                JOIN student s ON f.student_id = s.student_id
+            """
+            params = []
+            
+            conditions = []
+            if branch_filter:
+                conditions.append("f.branch = %s")
+                params.append(branch_filter)
+            if class_filter:
+                conditions.append("f.class_year = %s")
+                params.append(class_filter)
+                
+            if conditions:
+                query += " WHERE " + " AND ".join(conditions)
+                
+            query += " ORDER BY f.branch ASC, f.class_year ASC, s.name ASC"
+            
+            cursor.execute(query, tuple(params))
+            records = cursor.fetchall()
+            
+            for r in records:
+                b = r['branch']
+                cy = r['class_year']
+                if b not in fees_data:
+                    fees_data[b] = {}
+                if cy not in fees_data[b]:
+                    fees_data[b][cy] = []
+                fees_data[b][cy].append(r)
+                
+        except Exception as e:
+            flash(f'Error fetching fees: {e}', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return render_template('view_fees.html', fees_data=fees_data, departments=departments, current_branch=branch_filter, current_class=class_filter)
+
+
+@app.route('/api/fees_by_branch/<string:branch>')
+def api_fees_by_branch(branch):
+    # API alternative for filtering fees if needed dynamically
+    conn = db_config.get_db_connection()
+    fees = []
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT f.*, s.name as student_name 
+                FROM fees f 
+                JOIN student s ON f.student_id = s.student_id 
+                WHERE f.branch = %s
+            """, (branch,))
+            fees = cursor.fetchall()
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+    return jsonify(fees)
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port, debug=False)

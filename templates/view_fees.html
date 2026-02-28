@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}View Fees - College System{% endblock %}
+
+{% block content %}
+<div class="page-header"
+    style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 200px;">
+        <h2 style="margin: 0;">Student Fees Records</h2>
+    </div>
+
+    <div style="flex: 2; min-width: 280px; display: flex; justify-content: flex-end;">
+        <form method="GET" action="{{ url_for('view_fees') }}" class="styled-form" style="margin: 0; width: 100%;">
+            <div style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
+                <label for="branch"
+                    style="color: var(--text-muted); margin: 0; white-space: nowrap; font-size: 0.85rem;">Filter:</label>
+                <select id="branch" name="branch" onchange="this.form.submit()"
+                    style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; flex: 1; min-width: 150px; background-position: right 0.75rem center;">
+                    <option value="">All Branches</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.dept_name }}" {% if request.args.get('branch')==dept.dept_name %}selected{%
+                        endif %}>{{ dept.dept_name }}</option>
+                    {% endfor %}
+                </select>
+                {% if request.args.get('branch') %}
+                <a href="{{ url_for('view_fees') }}" class="btn btn-secondary btn-sm"
+                    style="white-space: nowrap; height: 100%; display: flex; align-items: center;">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div style="flex: 1; min-width: 200px; display: flex; justify-content: flex-end;">
+        <a href="{{ url_for('add_fees') }}" class="btn btn-primary" style="width: 100%; justify-content: center;">+
+            Record Fees</a>
+    </div>
+</div>
+
+<div class="grade-legend mb-4">
+    <h4>Status Legend:</h4>
+    <div class="legend-items">
+        <span class="badge"
+            style="background: var(--badge-succ-bg); border: 1px solid var(--badge-succ-border); color: var(--success);">Paid
+            Completely</span>
+        <span class="badge"
+            style="background: var(--badge-warn-bg); border: 1px solid var(--badge-warn-border); color: var(--warning);">Partial
+            Payment</span>
+        <span class="badge"
+            style="background: var(--badge-dang-bg); border: 1px solid var(--badge-dang-border); color: var(--danger);">Unpaid</span>
+    </div>
+</div>
+
+{% for branch, year_data in fees_data.items() %}
+<div class="list-container mb-4">
+    <div class="list-header"
+        style="padding: 1.25rem 1.5rem; background-color: var(--header-bg); border-bottom: 1px solid var(--border);">
+        <h3 style="margin: 0; font-size: 1.1rem; color: var(--primary);">{{ branch or 'Unassigned Branch' }}</h3>
+    </div>
+
+    {% for class_year, records in year_data.items() %}
+    <div class="table-responsive">
+        <div
+            style="padding: 0.75rem 1.5rem; background: var(--div-header-bg); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); font-weight: 600;">
+            Division / Class: {{ class_year }}
+        </div>
+        <table class="styled-table fee-table">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Total Fees (₹)</th>
+                    <th>Amount Paid (₹)</th>
+                    <th>Remaining (₹)</th>
+                    <th>Status</th>
+                    <th>Last Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in records %}
+                <tr
+                    class="{% if row.status == 'Paid' %}row-paid{% elif row.status == 'Partial' %}row-partial{% else %}row-unpaid{% endif %}">
+                    <td><strong>{{ row.student_name }}</strong></td>
+                    <td style="font-family: monospace; font-size: 0.95rem;">{{ "%.2f"|format(row.total_fees) }}</td>
+                    <td style="font-family: monospace; font-size: 0.95rem;">{{ "%.2f"|format(row.amount_paid) }}</td>
+                    <td style="font-family: monospace; font-size: 0.95rem; font-weight: 600;">{{
+                        "%.2f"|format(row.remaining_amount) }}</td>
+                    <td>
+                        <span
+                            class="badge {% if row.status == 'Paid' %}bg-success{% elif row.status == 'Partial' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ row.status }}
+                        </span>
+                    </td>
+                    <td class="text-muted">{{ row.payment_date or 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="list-container">
+    <div class="text-center" style="padding: 2rem;">No fee records found matching your criteria.</div>
+</div>
+{% endfor %}
+{% endblock %}
