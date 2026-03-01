@@ -50,12 +50,20 @@ def seed_students():
         for branch in branches:
             branch_name = dept_map.get(branch, f"Dept {branch}")
             for div in divisions:
+                roll_no_counter = 1
                 for _ in range(5):
                     # Random student
                     name = f"{random.choice(first_names)} {random.choice(last_names)}"
                     email = f"{name.lower().replace(' ', '.')}.{student_id_counter}@example.com"
                     phone = f"98{random.randint(10000000, 99999999)}"
-                    students_to_insert.append((student_id_counter, name, email, phone, branch, div))
+                    password = "student123"
+                    prn = f"PRN2026{str(student_id_counter).zfill(4)}"
+                    roll_no = roll_no_counter
+                    mother_name = random.choice(first_names)
+                    address = f"{random.randint(10, 999)}, {random.choice(['MG Road', 'FC Road', 'JM Road', 'SB Road', 'DP Road'])}, Pune"
+                    students_to_insert.append((student_id_counter, name, email, phone, random.choice(['Male', 'Female']), '2000-01-01', branch, div, password, prn, roll_no, mother_name, address))
+                    
+                    roll_no_counter += 1
                     
                     # Random fees
                     total_fees = 100000.0
@@ -92,8 +100,12 @@ def seed_students():
                             
                     student_id_counter += 1
                     
-        print(f"Inserting {len(students_to_insert)} students...")
-        query_student = "INSERT INTO student (student_id, name, email, phone, dept_id, division) VALUES (%s, %s, %s, %s, %s, %s)"
+        print("Inserting 100 students...")
+        query_student = """
+            INSERT INTO student (student_id, name, email, phone, gender, dob, dept_id, division, password, prn, roll_no, mother_name, address) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        # (id, name, email, phone, gender, dob, dept, div, password, prn, roll, mother, address)
         cursor.executemany(query_student, students_to_insert)
         
         print(f"Inserting {len(fees_to_insert)} fee records...")

@@ -12,14 +12,17 @@
 
         <form method="POST" action="{{ url_for('login') }}" class="styled-form">
             <div class="form-group">
-                <label for="username">Username</label>
-                <select id="username" name="username" required>
-                    <option value="" disabled selected>Select admin profile</option>
-                    <option value="Mohit">Mohit</option>
-                    <option value="Parth">Parth</option>
-                    <option value="Kaustubh">Kaustubh</option>
-                    <option value="admin">admin</option>
+                <label for="role">Login As</label>
+                <select id="role" name="role" required>
+                    <option value="Admin" selected>Admin</option>
+                    <option value="Faculty">Faculty</option>
+                    <option value="Student">Student</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Email / Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter email or username">
             </div>
 
             <div class="form-group">

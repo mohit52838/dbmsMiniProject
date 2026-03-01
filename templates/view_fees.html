@@ -16,7 +16,9 @@
                     style="color: var(--text-muted); margin: 0; white-space: nowrap; font-size: 0.85rem;">Filter:</label>
                 <select id="branch" name="branch" onchange="this.form.submit()"
                     style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; flex: 1; min-width: 150px; background-position: right 0.75rem center;">
+                    {% if session.get('role') != 'faculty' %}
                     <option value="">All Branches</option>
+                    {% endif %}
                     {% for dept in departments %}
                     <option value="{{ dept.dept_name }}" {% if request.args.get('branch')==dept.dept_name %}selected{%
                         endif %}>{{ dept.dept_name }}</option>
@@ -30,10 +32,12 @@
         </form>
     </div>
 
+    {% if session.get('role') == 'admin' %}
     <div style="flex: 1; min-width: 200px; display: flex; justify-content: flex-end;">
         <a href="{{ url_for('add_fees') }}" class="btn btn-primary" style="width: 100%; justify-content: center;">+
             Record Fees</a>
     </div>
+    {% endif %}
 </div>
 
 <div class="grade-legend mb-4">

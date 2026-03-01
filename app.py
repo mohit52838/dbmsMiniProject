@@ -12,46 +12,98 @@ db_config.create_student_reports_view()
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+        role = request.form.get('role', 'Admin')
         username = request.form['username']
         password = request.form['password']
         
-        # Simple admin login (can be adapted to query the 'admin' table)
-        if username == 'Mohit' and password == 'Mohit123':
-            session['logged_in'] = True
-            session['role'] = 'admin'
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        elif username == 'Parth' and password == 'Parth123':
-            session['logged_in'] = True
-            session['role'] = 'admin'
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        elif username == 'Kaustubh' and password == 'Kaustubh123':
-            session['logged_in'] = True
-            session['role'] = 'admin'
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
+        # Admin Role
+        if role == 'Admin':
+            # Simple admin login
+            if username == 'Mohit' and password == 'Mohit123':
+                session['logged_in'] = True
+                session['role'] = 'admin'
+                session['user_id'] = 0
+                flash('Welcome built-in Admin!', 'success')
+                return redirect(url_for('dashboard'))
+            elif username == 'Parth' and password == 'Parth123':
+                session['logged_in'] = True
+                session['role'] = 'admin'
+                session['user_id'] = 0
+                flash('Welcome built-in Admin!', 'success')
+                return redirect(url_for('dashboard'))
+            elif username == 'Kaustubh' and password == 'Kaustubh123':
+                session['logged_in'] = True
+                session['role'] = 'admin'
+                session['user_id'] = 0
+                flash('Welcome built-in Admin!', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                conn = db_config.get_db_connection()
+                if conn:
+                    cursor = conn.cursor(dictionary=True)
+                    try:
+                        cursor.execute("SELECT * FROM admin WHERE username=%s AND password=%s", (username, password))
+                        admin = cursor.fetchone()
+                        if admin:
+                            session['logged_in'] = True
+                            session['role'] = 'admin'
+                            session['user_id'] = admin['admin_id']
+                            flash('Login successful!', 'success')
+                            return redirect(url_for('dashboard'))
+                    except Exception as e:
+                        print(f"DB Auth Error: {e}")
+                    finally:
+                        cursor.close()
+                        conn.close()
+                flash('Invalid Admin credentials.', 'danger')
+                
+        # Faculty Role
+        elif role == 'Faculty':
             conn = db_config.get_db_connection()
             if conn:
                 cursor = conn.cursor(dictionary=True)
-                # Note: Adjust column names if different in the actual 'admin' table
-                # Handling basic fallback if tables have different schema
                 try:
-                    cursor.execute("SELECT * FROM admin WHERE username=%s AND password=%s", (username, password))
-                    admin = cursor.fetchone()
-                    if admin:
+                    # Allow Faculty to login by Email OR exact Name for robust fallback
+                    cursor.execute("SELECT * FROM faculty WHERE (email=%s OR name=%s) AND password=%s", (username, username, password))
+                    faculty = cursor.fetchone()
+                    if faculty:
                         session['logged_in'] = True
-                        session['role'] = 'admin'
-                        flash('Login successful!', 'success')
+                        session['role'] = 'faculty'
+                        session['user_id'] = faculty['faculty_id']
+                        session['name'] = faculty['name']
+                        faculty_raw_name = faculty['name']
+                        cleaned_name = faculty_raw_name.replace('Mr. ', '').replace('Mrs. ', '').replace('Ms. ', '').replace('Dr. ', '').replace('Prof. ', '').strip()
+                        last_name = cleaned_name.split()[-1] if len(cleaned_name.split()) > 0 else cleaned_name
+                        flash(f"Welcome back, Prof. {last_name}!", 'success')
                         return redirect(url_for('dashboard'))
                 except Exception as e:
-                    print(f"DB Auth Error: {e}")
+                    print(f"Faculty Auth Error: {e}")
                 finally:
                     cursor.close()
                     conn.close()
-            
-            flash('Invalid credentials. Please try again.', 'danger')
+            flash('Invalid Faculty credentials.', 'danger')
+
+        # Student Role
+        elif role == 'Student':
+            conn = db_config.get_db_connection()
+            if conn:
+                cursor = conn.cursor(dictionary=True)
+                try:
+                    cursor.execute("SELECT * FROM student WHERE (email=%s OR name=%s) AND password=%s", (username, username, password))
+                    student = cursor.fetchone()
+                    if student:
+                        session['logged_in'] = True
+                        session['role'] = 'student'
+                        session['user_id'] = student['student_id']
+                        session['name'] = student['name']
+                        flash(f"Welcome, {student['name'].split()[0]}!", 'success')
+                        return redirect(url_for('dashboard'))
+                except Exception as e:
+                    print(f"Student Auth Error: {e}")
+                finally:
+                    cursor.close()
+                    conn.close()
+            flash('Invalid Student credentials.', 'danger')
             
     return render_template('login.html')
 
@@ -69,26 +121,81 @@ def dashboard():
     conn = db_config.get_db_connection()
     students_count = 0
     faculty_count = 0
+    student_stats = {}
     
     if conn:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("SELECT COUNT(*) FROM student")
-            students_count = cursor.fetchone()[0]
-            
-            cursor.execute("SELECT COUNT(*) FROM faculty")
-            faculty_count = cursor.fetchone()[0]
+            if session.get('role') in ['admin', 'faculty']:
+                cursor.execute("SELECT COUNT(*) as count FROM student")
+                students_count = cursor.fetchone()['count']
+                
+                cursor.execute("SELECT COUNT(*) as count FROM faculty")
+                faculty_count = cursor.fetchone()['count']
+                
+            elif session.get('role') == 'student':
+                student_id = session.get('user_id')
+                
+                # Get Attendance %
+                cursor.execute("SELECT COUNT(*) as total_classes FROM attendance WHERE student_id = %s", (student_id,))
+                total_classes = cursor.fetchone()['total_classes']
+                
+                cursor.execute("SELECT COUNT(*) as present_classes FROM attendance WHERE student_id = %s AND status = 'Present'", (student_id,))
+                present_classes = cursor.fetchone()['present_classes']
+                
+                if total_classes > 0:
+                    student_stats['attendance_pct'] = (present_classes / total_classes) * 100
+                else:
+                    student_stats['attendance_pct'] = 0.0
+                    
+                # Get Average Marks
+                cursor.execute("SELECT AVG(total) as avg_marks FROM marks WHERE student_id = %s", (student_id,))
+                res = cursor.fetchone()
+                student_stats['avg_marks'] = res['avg_marks'] if res['avg_marks'] else 0.0
+                
+                # Get Detailed Attendance
+                cursor.execute("""
+                    SELECT sub.subject_name, 
+                           SUM(CASE WHEN a.status = 'Present' THEN 1 ELSE 0 END) as present_count,
+                           COUNT(a.attendance_id) as total_count
+                    FROM attendance a
+                    JOIN subject sub ON a.subject_id = sub.subject_id
+                    WHERE a.student_id = %s
+                    GROUP BY a.subject_id, sub.subject_name
+                """, (student_id,))
+                student_stats['detailed_attendance'] = cursor.fetchall()
+                
+                # Get Detailed Marks
+                cursor.execute("""
+                    SELECT sub.subject_name, m.internal_marks, m.external_marks, m.total, m.grade
+                    FROM marks m
+                    JOIN subject sub ON m.subject_id = sub.subject_id
+                    WHERE m.student_id = %s
+                """, (student_id,))
+                student_stats['detailed_marks'] = cursor.fetchall()
+
+                # Get Fee Status
+                cursor.execute("SELECT status FROM fees WHERE student_id = %s ORDER BY payment_date DESC LIMIT 1", (student_id,))
+                fee_record = cursor.fetchone()
+                student_stats['fee_status'] = fee_record['status'] if fee_record else 'Unpaid'
+
         except Exception as e:
             print(f"Dashboard Query Error: {e}")
         finally:
             cursor.close()
             conn.close()
             
-    return render_template('dashboard.html', students_count=students_count, faculty_count=faculty_count)
+    return render_template('dashboard.html', 
+                           students_count=students_count, 
+                           faculty_count=faculty_count,
+                           student_stats=student_stats)
 
 @app.route('/add_student', methods=['GET', 'POST'])
 def add_student():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') not in ['admin', 'faculty']:
+        flash('Access denied. Admins and Faculty only.', 'danger')
+        return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
         name = request.form['name']
@@ -118,7 +225,17 @@ def add_student():
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("SELECT dept_id, dept_name FROM department")
+            if session.get('role') == 'faculty':
+                # Only show their own department
+                cursor.execute("""
+                    SELECT d.dept_id, d.dept_name 
+                    FROM department d 
+                    JOIN faculty f ON d.dept_id = f.dept_id 
+                    WHERE f.faculty_id = %s
+                """, (session.get('user_id'),))
+            else:
+                cursor.execute("SELECT dept_id, dept_name FROM department")
+                
             departments = cursor.fetchall()
         except Exception as e:
             print(f"Error fetching data: {e}")
@@ -131,8 +248,24 @@ def add_student():
 @app.route('/view_students')
 def view_students():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') not in ['admin', 'faculty']:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
     
-    dept_id_filter = request.args.get('dept_id')
+    if session.get('role') == 'faculty':
+        conn = db_config.get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT dept_id FROM faculty WHERE faculty_id = %s", (session.get('user_id'),))
+            faculty_dept = cursor.fetchone()
+            if faculty_dept:
+                dept_id_filter = faculty_dept[0]
+            else:
+                dept_id_filter = request.args.get('dept_id')  # Fallback
+            cursor.close()
+            conn.close()
+    else:
+        dept_id_filter = request.args.get('dept_id')
     
     conn = db_config.get_db_connection()
     reports = {}
@@ -142,7 +275,17 @@ def view_students():
         cursor = conn.cursor(dictionary=True)
         try:
             # Fetch departments for the filter dropdown
-            cursor.execute("SELECT dept_id, dept_name FROM department ORDER BY dept_name")
+            if session.get('role') == 'faculty':
+                # Only show their own department in the dropdown
+                cursor.execute("""
+                    SELECT d.dept_id, d.dept_name 
+                    FROM department d 
+                    JOIN faculty f ON d.dept_id = f.dept_id 
+                    WHERE f.faculty_id = %s
+                """, (session.get('user_id'),))
+            else:
+                cursor.execute("SELECT dept_id, dept_name FROM department ORDER BY dept_name")
+                
             departments = cursor.fetchall()
             
             # Using the VIEW created in phase 2/3
@@ -193,6 +336,9 @@ def view_students():
 @app.route('/add_faculty', methods=['GET', 'POST'])
 def add_faculty():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied. Admins only.', 'danger')
+        return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
         name = request.form['name']
@@ -233,6 +379,9 @@ def add_faculty():
 @app.route('/view_faculty')
 def view_faculty():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied. Admins only.', 'danger')
+        return redirect(url_for('dashboard'))
     
     conn = db_config.get_db_connection()
     faculties = {}
@@ -265,6 +414,9 @@ def view_faculty():
 @app.route('/view_subjects')
 def view_subjects():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') not in ['admin', 'faculty']:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
     
     conn = db_config.get_db_connection()
     subjects = {}
@@ -298,6 +450,9 @@ def view_subjects():
 @app.route('/add_marks', methods=['GET', 'POST'])
 def add_marks():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') not in ['admin', 'faculty']:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
         student_id = request.form.get('student_id')
@@ -325,12 +480,20 @@ def add_marks():
                 conn.close()
                 
     departments = []
+    current_dept_id = None
     conn = db_config.get_db_connection()
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("SELECT dept_id, dept_name FROM department")
-            departments = cursor.fetchall()
+            if session.get('role') == 'faculty':
+                # Faculty can only see their department
+                cursor.execute("SELECT d.dept_id, d.dept_name FROM department d JOIN faculty f ON d.dept_id = f.dept_id WHERE f.faculty_id = %s", (session.get('user_id'),))
+                departments = cursor.fetchall()
+                if departments:
+                    current_dept_id = departments[0]['dept_id']
+            else:
+                cursor.execute("SELECT dept_id, dept_name FROM department")
+                departments = cursor.fetchall()
         except Exception as e:
             print(f"Error fetching departments: {e}")
         finally:
@@ -342,6 +505,9 @@ def add_marks():
 @app.route('/attendance', methods=['GET', 'POST'])
 def attendance():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') not in ['admin', 'faculty']:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
         student_id = request.form.get('student_id')
@@ -397,12 +563,20 @@ def attendance():
                 conn.close()
                 
     departments = []
+    current_dept_id = None
     conn = db_config.get_db_connection()
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("SELECT dept_id, dept_name FROM department")
-            departments = cursor.fetchall()
+            if session.get('role') == 'faculty':
+                # Faculty can only see their department
+                cursor.execute("SELECT d.dept_id, d.dept_name FROM department d JOIN faculty f ON d.dept_id = f.dept_id WHERE f.faculty_id = %s", (session.get('user_id'),))
+                departments = cursor.fetchall()
+                if departments:
+                    current_dept_id = departments[0]['dept_id']
+            else:
+                cursor.execute("SELECT dept_id, dept_name FROM department")
+                departments = cursor.fetchall()
         except Exception as e:
             print(f"Error fetching departments: {e}")
         finally:
@@ -569,6 +743,9 @@ def api_subjects(dept_id):
 @app.route('/add_fees', methods=['GET', 'POST'])
 def add_fees():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied. Admins only.', 'danger')
+        return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
         student_id = request.form.get('student_id')
@@ -646,6 +823,9 @@ def add_fees():
 @app.route('/view_fees')
 def view_fees():
     if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') not in ['admin', 'faculty']:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
     
     branch_filter = request.args.get('branch')
     class_filter = request.args.get('class_year')
@@ -654,23 +834,51 @@ def view_fees():
     fees_data = {}
     departments = []
     
+    if session.get('role') == 'faculty':
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT d.dept_id, d.dept_name FROM department d JOIN faculty f ON d.dept_id = f.dept_id WHERE f.faculty_id = %s", (session.get('user_id'),))
+            faculty_dept = cursor.fetchone()
+            if faculty_dept:
+                branch_filter = faculty_dept[1] # Override whatever was selected with their actual branch
+            cursor.close()
+    
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("SELECT dept_id, dept_name FROM department ORDER BY dept_name")
+            if session.get('role') == 'faculty':
+                # Faculty only see their department
+                cursor.execute("""
+                    SELECT department.dept_id, department.dept_name 
+                    FROM department
+                    JOIN faculty ON department.dept_id = faculty.dept_id 
+                    WHERE faculty.faculty_id = %s
+                """, (session.get('user_id'),))
+            else:
+                cursor.execute("SELECT dept_id, dept_name FROM department ORDER BY dept_name")
+            
             departments = cursor.fetchall()
             
             query = """
-                SELECT f.*, s.name as student_name
+                SELECT f.*, s.name as student_name, d.dept_id
                 FROM fees f
                 JOIN student s ON f.student_id = s.student_id
+                LEFT JOIN department d ON f.branch = d.dept_name
             """
             params = []
-            
             conditions = []
-            if branch_filter:
+            
+            if session.get('role') == 'faculty':
+                # Absolute override: Force the query to ONLY look at their assigned branch
+                cursor.execute("SELECT faculty.dept_id FROM faculty WHERE faculty.faculty_id = %s", (session.get('user_id'),))
+                faculty_dept = cursor.fetchone()
+                if faculty_dept:
+                    conditions.append("d.dept_id = %s")
+                    params.append(faculty_dept['dept_id'])
+            elif branch_filter:
                 conditions.append("f.branch = %s")
                 params.append(branch_filter)
+                
             if class_filter:
                 conditions.append("f.class_year = %s")
                 params.append(class_filter)
@@ -723,6 +931,16 @@ def api_fees_by_branch(branch):
             conn.close()
     return jsonify(fees)
 
+@app.errorhandler(500)
+def internal_error(exception):
+    import traceback
+    import sys
+    print("500 ERROR CAUGHT!", file=sys.stderr)
+    traceback.print_exc()
+    print("500 ERROR CAUGHT!", file=sys.stdout)
+    traceback.print_exc(file=sys.stdout)
+    return "500 Internal Server Error", 500
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)

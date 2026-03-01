@@ -33,18 +33,25 @@
             </button>
             <a href="{{ url_for('dashboard') }}"
                 class="{{ 'active' if request.endpoint == 'dashboard' else '' }}">Dashboard</a>
+
+            {% if session.get('role') in ['admin', 'faculty'] %}
             <a href="{{ url_for('view_students') }}"
                 class="{{ 'active' if request.endpoint in ['view_students', 'add_student', 'update_student'] else '' }}">Students</a>
             <a href="{{ url_for('view_subjects') }}"
                 class="{{ 'active' if request.endpoint == 'view_subjects' else '' }}">Subjects</a>
             <a href="{{ url_for('attendance') }}"
                 class="{{ 'active' if request.endpoint == 'attendance' else '' }}">Attendance</a>
-            <a href="{{ url_for('view_fees') }}"
-                class="{{ 'active' if request.endpoint in ['view_fees', 'add_fees'] else '' }}">Fees</a>
             <a href="{{ url_for('add_marks') }}" class="{{ 'active' if request.endpoint == 'add_marks' else '' }}">Add
                 Marks</a>
+            <a href="{{ url_for('view_fees') }}"
+                class="{{ 'active' if request.endpoint in ['view_fees', 'add_fees'] else '' }}">Fees</a>
+            {% endif %}
+
+            {% if session.get('role') == 'admin' %}
             <a href="{{ url_for('view_faculty') }}"
                 class="{{ 'active' if request.endpoint in ['view_faculty', 'add_faculty'] else '' }}">Faculty</a>
+            {% endif %}
+
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
         </div>
     </nav>

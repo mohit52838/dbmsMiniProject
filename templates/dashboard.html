@@ -8,6 +8,7 @@
     <p>Here is an overview of the College Management System</p>
 </div>
 
+{% if session.get('role') in ['admin', 'faculty'] %}
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon">🎓</div>
@@ -33,10 +34,12 @@
             <div class="action-icon">📋</div>
             <span>View All Students</span>
         </a>
+        {% if session.get('role') in ['admin', 'faculty'] %}
         <a href="{{ url_for('add_student') }}" class="action-card">
             <div class="action-icon">➕</div>
             <span>Add New Student</span>
         </a>
+        {% endif %}
         <a href="{{ url_for('attendance') }}" class="action-card">
             <div class="action-icon">📅</div>
             <span>Mark Attendance</span>
@@ -47,4 +50,240 @@
         </a>
     </div>
 </div>
+{% endif %}
+
+{% if session.get('role') == 'student' %}
+<div class="stats-grid">
+    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openModal('attendanceModal')"
+        onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="stat-icon" style="color: var(--warning);">📅</div>
+        <div class="stat-info">
+            <h3>My Attendance</h3>
+            <p class="stat-number">{{ "%.1f"|format(student_stats.attendance_pct|default(0)) }}%</p>
+        </div>
+    </div>
+
+    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openModal('marksModal')"
+        onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="stat-icon" style="color: var(--success);">📊</div>
+        <div class="stat-info">
+            <h3>Average Marks</h3>
+            <p class="stat-number">{{ "%.1f"|format(student_stats.avg_marks|default(0)) }}</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="color: var(--info);">💰</div>
+        <div class="stat-info">
+            <h3>Fee Status</h3>
+            <p class="stat-number" style="font-size: 1.5rem;">{{ student_stats.fee_status|default('N/A') }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="list-container mt-4"
+    style="border-radius: 20px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border);">
+    <div class="list-header"
+        style="background: linear-gradient(135deg, var(--surface), var(--background)); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);">
+        <h3
+            style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.75rem;">
+            <span>📈</span> Recent Performance Overview
+        </h3>
+    </div>
+    <div style="padding: 2.5rem 2rem; background: var(--surface);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+
+            <!-- Quick Stat Pill -->
+            <div
+                style="background: var(--background); border-radius: 16px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; border: 1px solid var(--border);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+                <div
+                    style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">
+                    Top Grade</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--success); margin-top: 0.25rem;">
+                    {% if student_stats.detailed_marks and student_stats.detailed_marks|length > 0 %}
+                    {{ student_stats.detailed_marks | map(attribute='grade') | min }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Stat Pill -->
+            <div
+                style="background: var(--background); border-radius: 16px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; border: 1px solid var(--border);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎓</div>
+                <div
+                    style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">
+                    Enrolled Subjects</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-top: 0.25rem;">
+                    {{ student_stats.detailed_marks|length if student_stats.detailed_marks else 0 }}
+                </div>
+            </div>
+
+            <!-- Quick Stat Pill -->
+            <div
+                style="background: var(--background); border-radius: 16px; padding: 1.5rem; text-align: center; transition: all 0.3s ease; border: 1px solid var(--border);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">💳</div>
+                <div
+                    style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">
+                    Account Standing</div>
+                <div
+                    style="font-size: 1.15rem; font-weight: 700; color: {% if student_stats.fee_status == 'Unpaid' %}var(--danger){% else %}var(--info){% endif %}; margin-top: 0.25rem;">
+                    {{ student_stats.fee_status|default('Current') }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Modals for Student Metrics -->
+<div id="attendanceModal" class="modal-overlay"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.3s ease;">
+    <div class="modal-content"
+        style="background: var(--surface); border-radius: 20px; width: 90%; max-width: 650px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; transform: scale(0.95); animation: modalPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+
+        <div
+            style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div
+                    style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; backdrop-filter: blur(4px);">
+                    📅</div>
+                <div>
+                    <h3 style="margin: 0; color: white; font-size: 1.5rem; font-weight: 700;">Attendance History</h3>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin-top: 0.25rem;">Your
+                        Subject-Wise Breakdown</div>
+                </div>
+            </div>
+            <button onclick="closeModal('attendanceModal')"
+                style="background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); transition: background 0.2s;">
+                &times;
+            </button>
+        </div>
+
+        <div style="padding: 2rem; max-height: 60vh; overflow-y: auto;">
+            <table class="styled-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Classes Attended</th>
+                        <th>Total Classes</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subject in student_stats.detailed_attendance %}
+                    {% set pct = (subject.present_count / subject.total_count * 100) if subject.total_count > 0 else 0
+                    %}
+                    <tr>
+                        <td><strong>{{ subject.subject_name }}</strong></td>
+                        <td>{{ subject.present_count }}</td>
+                        <td>{{ subject.total_count }}</td>
+                        <td>
+                            <div class="progress-container" style="flex: 1;">
+                                <div class="progress-bar {% if pct < 75 %}bg-danger{% else %}bg-success{% endif %}"
+                                    style="width: {{ pct }}%"></div>
+                                <span>{{ "%.1f"|format(pct) }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">No attendance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 2rem; text-align: center;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('attendanceModal')"
+                style="width: 100%; max-width: 250px; border-radius: 10px; padding: 0.75rem; font-weight: 600;">Close
+                View</button>
+        </div>
+    </div>
+</div>
+
+<div id="marksModal" class="modal-overlay"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.3s ease;">
+    <div class="modal-content"
+        style="background: var(--surface); border-radius: 20px; width: 90%; max-width: 750px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; transform: scale(0.95); animation: modalPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+
+        <div
+            style="background: linear-gradient(135deg, var(--accent), var(--primary)); padding: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div
+                    style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; backdrop-filter: blur(4px);">
+                    📊</div>
+                <div>
+                    <h3 style="margin: 0; color: white; font-size: 1.5rem; font-weight: 700;">Examination Marks</h3>
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.85rem; margin-top: 0.25rem;">Academic Grading
+                        Record</div>
+                </div>
+            </div>
+            <button onclick="closeModal('marksModal')"
+                style="background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); transition: background 0.2s;">
+                &times;
+            </button>
+        </div>
+
+        <div style="padding: 2rem; max-height: 60vh; overflow-y: auto;">
+            <table class="styled-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Internal (40)</th>
+                        <th>External (60)</th>
+                        <th>Total (100)</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for marks in student_stats.detailed_marks %}
+                    <tr>
+                        <td><strong>{{ marks.subject_name }}</strong></td>
+                        <td>{{ marks.internal_marks }}</td>
+                        <td>{{ marks.external_marks }}</td>
+                        <td><strong>{{ marks.total }}</strong></td>
+                        <td><span
+                                class="badge {% if marks.total >= 75 %}bg-success{% elif marks.total >= 60 %}bg-primary{% elif marks.total >= 40 %}bg-warning{% else %}bg-danger{% endif %}">{{
+                                marks.grade }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No marks recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 2rem; text-align: center;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('marksModal')"
+                style="width: 100%; max-width: 250px; border-radius: 10px; padding: 0.75rem; font-weight: 600;">Close
+                View</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+    // Close modal if clicking outside
+    window.onclick = function (event) {
+        var modals = document.querySelectorAll('.modal-overlay');
+        modals.forEach(function (modal) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+</script>
+
+{% endif %}
 {% endblock %}

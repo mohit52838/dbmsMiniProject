@@ -65,6 +65,12 @@ def create_student_reports_view():
     SELECT 
         s.student_id, 
         s.name, 
+        s.prn,
+        s.roll_no,
+        s.email,
+        s.phone,
+        s.mother_name,
+        s.address,
         d.dept_name as branch,
         s.division,
         COALESCE(m.total_marks_obtained, 0) AS total_marks_obtained,

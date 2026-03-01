@@ -16,13 +16,15 @@
                     style="color: var(--text-muted); margin: 0; white-space: nowrap; font-size: 0.85rem;">Filter:</label>
                 <select id="dept_id" name="dept_id" onchange="this.form.submit()"
                     style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; flex: 1; min-width: 150px; background-position: right 0.75rem center;">
+                    {% if session.get('role') != 'faculty' %}
                     <option value="">All Branches</option>
+                    {% endif %}
                     {% for dept in departments %}
                     <option value="{{ dept.dept_id }}" {% if current_dept_id|string==dept.dept_id|string %}selected{%
                         endif %}>{{ dept.dept_name }}</option>
                     {% endfor %}
                 </select>
-                {% if current_dept_id %}
+                {% if current_dept_id and session.get('role') != 'faculty' %}
                 <a href="{{ url_for('view_students') }}" class="btn btn-secondary btn-sm"
                     style="white-space: nowrap; height: 100%; display: flex; align-items: center;">Clear</a>
                 {% endif %}
@@ -47,7 +49,7 @@
         <table class="styled-table" style="margin-bottom: 0;">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Roll No</th>
                     <th>Name</th>
                     <th>Score</th>
                     <th>Grade</th>
@@ -58,8 +60,12 @@
             <tbody>
                 {% for report in branch_students %}
                 <tr>
-                    <td>{{ report.student_id }}</td>
-                    <td><strong>{{ report.name }}</strong></td>
+                    <td>{{ report.roll_no }}</td>
+                    <td>
+                        <strong>{{ report.name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ report.prn }}</small>
+                    </td>
                     <td>
                         {{ report.total_marks_obtained }} / {{ report.max_possible_marks }}
                         <br>
@@ -88,6 +94,8 @@
                     </td>
                     <td>
                         <div class="action-buttons">
+                            <button type="button" class="btn btn-sm btn-secondary"
+                                onclick="showStudentDetails('{{ report.name|escape }}', '{{ report.prn|escape }}', '{{ report.email|escape }}', '{{ report.phone|escape }}', '{{ report.mother_name|escape }}', '{{ report.address|escape }}', '{{ report.roll_no }}', '{{ branch|escape }}', '{{ division|escape }}')">Details</button>
                             <a href="{{ url_for('view_student_marks', id=report.student_id) }}"
                                 class="btn btn-sm btn-info" style="color: white">Marks</a>
                             <a href="{{ url_for('update_student', id=report.student_id) }}"
@@ -111,4 +119,136 @@
     <div class="text-center" style="padding: 2rem;">No students found.</div>
 </div>
 {% endfor %}
+
+<!-- Student Details Modal -->
+<div id="studentDetailsModal" class="modal-overlay"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.3s ease;">
+    <div class="modal-content"
+        style="background: var(--surface); border-radius: 20px; width: 90%; max-width: 450px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; transform: scale(0.95); animation: modalPop 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+
+        <!-- Gradient Header with Avatar -->
+        <div
+            style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 2.5rem 2rem 4rem 2rem; text-align: center; position: relative;">
+            <button onclick="closeStudentDetails()"
+                style="position: absolute; top: 1rem; right: 1.5rem; background: rgba(255,255,255,0.2); border: none; width: 32px; height: 32px; border-radius: 50%; color: white; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); transition: background 0.2s;">
+                &times;
+            </button>
+            <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.8); margin-bottom: 0.5rem; font-weight: 600;"
+                id="modalPrn"></div>
+            <h3 style="margin: 0; color: white; font-size: 1.5rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                id="modalStudentName">Student Name</h3>
+        </div>
+
+        <!-- Content Body -->
+        <div style="padding: 0 2rem 2rem 2rem; position: relative; margin-top: -30px;">
+            <!-- Avatar Circle -->
+            <div
+                style="width: 80px; height: 80px; background: var(--surface); border-radius: 50%; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 4px solid var(--surface); color: var(--primary);">
+                👨‍🎓
+            </div>
+
+            <!-- Detail Pills -->
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div
+                    style="background: var(--background); padding: 0.85rem 1rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(56, 189, 248, 0.1); display: flex; align-items: center; justify-content: center; color: var(--secondary);">
+                        📚</div>
+                    <div style="flex: 1;">
+                        <div
+                            style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                            Class & Branch</div>
+                        <div style="color: var(--text-main); font-weight: 500; font-size: 0.9rem;" id="modalClass">
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="background: var(--background); padding: 0.85rem 1rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--accent);">
+                        ✉️</div>
+                    <div style="flex: 1;">
+                        <div
+                            style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                            Email Address</div>
+                        <div style="color: var(--text-main); font-weight: 500; font-size: 0.9rem; word-break: break-all;"
+                            id="modalEmail"></div>
+                    </div>
+                </div>
+
+                <div
+                    style="background: var(--background); padding: 0.85rem 1rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; color: var(--info);">
+                        📱</div>
+                    <div style="flex: 1;">
+                        <div
+                            style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">
+                            Phone Number</div>
+                        <div style="color: var(--text-main); font-weight: 500; font-size: 0.9rem;" id="modalPhone">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div style="background: var(--background); padding: 0.85rem 1rem; border-radius: 12px;">
+                        <div
+                            style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.25rem;">
+                            Mother</div>
+                        <div style="color: var(--text-main); font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            id="modalMother"></div>
+                    </div>
+                    <div style="background: var(--background); padding: 0.85rem 1rem; border-radius: 12px;">
+                        <div
+                            style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.25rem;">
+                            Address</div>
+                        <div style="color: var(--text-main); font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            id="modalAddress"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <button type="button" class="btn btn-secondary" onclick="closeStudentDetails()"
+                    style="width: 100%; border-radius: 10px; padding: 0.75rem; font-weight: 600;">Close Profile</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes modalPop {
+        to {
+            transform: scale(1);
+        }
+    }
+</style>
+
+<script>
+    function showStudentDetails(name, prn, email, phone, mother, address, rollNo, branch, division) {
+        document.getElementById('modalStudentName').textContent = name;
+        document.getElementById('modalPrn').textContent = prn && prn !== 'None' ? prn : 'N/A';
+        document.getElementById('modalEmail').textContent = email && email !== 'None' ? email : 'N/A';
+        document.getElementById('modalPhone').textContent = phone && phone !== 'None' ? phone : 'N/A';
+        document.getElementById('modalMother').textContent = mother && mother !== 'None' ? mother : 'N/A';
+        document.getElementById('modalAddress').textContent = address && address !== 'None' ? address : 'N/A';
+        document.getElementById('modalClass').textContent = branch + " - Div " + division + " (Roll No: " + (rollNo && rollNo !== 'None' ? rollNo : 'N/A') + ")";
+
+        document.getElementById('studentDetailsModal').style.display = 'flex';
+    }
+
+    function closeStudentDetails() {
+        document.getElementById('studentDetailsModal').style.display = 'none';
+    }
+
+    // Close modal if clicking outside
+    window.onclick = function (event) {
+        var modal = document.getElementById('studentDetailsModal');
+        if (event.target == modal) {
+            closeStudentDetails();
+        }
+    }
+</script>
+
 {% endblock %}
