@@ -9,13 +9,13 @@
         <h2 style="margin: 0;">Student Records</h2>
     </div>
 
-    <div style="flex: 2; min-width: 280px; display: flex; justify-content: flex-end;">
-        <form method="GET" action="{{ url_for('view_students') }}" class="styled-form" style="margin: 0; width: 100%;">
-            <div style="display: flex; gap: 0.75rem; align-items: center; width: 100%;">
+    <div style="display: flex; justify-content: flex-end; align-items: center;">
+        <form method="GET" action="{{ url_for('view_students') }}" class="styled-form" style="margin: 0;">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
                 <label for="dept_id"
                     style="color: var(--text-muted); margin: 0; white-space: nowrap; font-size: 0.85rem;">Filter:</label>
                 <select id="dept_id" name="dept_id" onchange="this.form.submit()"
-                    style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; flex: 1; min-width: 150px; background-position: right 0.75rem center;">
+                    style="margin: 0; padding: 0.5rem 2.25rem 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; min-width: 150px; width: auto; background-position: right 0.75rem center;">
                     {% if session.get('role') != 'faculty' %}
                     <option value="">All Branches</option>
                     {% endif %}
@@ -32,7 +32,7 @@
         </form>
     </div>
 
-    <div style="flex: 1; min-width: 200px; display: flex; justify-content: flex-end; gap: 0.5rem;">
+    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
         <a href="{{ url_for('export_students', dept_id=request.args.get('dept_id', '')) }}"
             class="btn-export d-print-none" title="Download as Excel/CSV">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
