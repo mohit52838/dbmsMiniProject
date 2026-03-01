@@ -1062,6 +1062,10 @@ h6 {
         gap: 1rem;
         align-items: flex-start;
     }
+
+    .desktop-text {
+        display: none !important;
+    }
 }
 
 /* --- PRINT / PDF EXPORT STYLES --- */

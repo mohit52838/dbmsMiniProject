@@ -14,9 +14,16 @@
                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                     </path>
                 </svg>
-                Print
+                <span class="desktop-text">Print</span>
             </button>
-            <a href="{{ url_for('view_students') }}" class="btn btn-secondary">Back to Students</a>
+            <a href="{{ url_for('view_students') }}" class="btn btn-secondary"
+                style="display: flex; align-items: center; gap: 0.5rem;" title="Back Default">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span class="desktop-text">Back to Students</span>
+            </a>
         </div>
     </div>
 

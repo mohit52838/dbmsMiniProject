@@ -39,7 +39,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            CSV
+            <span class="desktop-text">CSV</span>
         </a>
         <button onclick="window.print()" class="btn-export d-print-none" title="Save as PDF">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,11 +47,16 @@
                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                 </path>
             </svg>
-            Print
+            <span class="desktop-text">Print</span>
         </button>
         {% if session.get('role') == 'admin' %}
-        <a href="{{ url_for('add_fees') }}" class="btn btn-primary d-print-none" style="justify-content: center;">+
-            Record Fees</a>
+        <a href="{{ url_for('add_fees') }}" class="btn btn-primary d-print-none"
+            style="justify-content: center; display: flex; align-items: center; gap: 0.5rem;" title="Record Fees">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span class="desktop-text">Record Fees</span>
+        </a>
         {% endif %}
     </div>
 </div>
