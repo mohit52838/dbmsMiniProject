@@ -1056,7 +1056,7 @@ def export_fees():
             data.truncate(0)
             
             for row in fees:
-                pay_date_str = row.get('payment_date').strftime('%d-%b-%Y') if row.get('payment_date') else ''
+                pay_date_str = f'="{row.get("payment_date").strftime("%d-%b-%Y")}"' if row.get('payment_date') else ''
                 
                 writer.writerow([
                     row.get('student_name', ''), row.get('prn', ''), row.get('branch', ''), row.get('class_year', ''),
