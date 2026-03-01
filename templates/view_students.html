@@ -34,8 +34,8 @@
 
     <div style="flex: 1; min-width: 200px; display: flex; justify-content: flex-end; gap: 0.5rem;">
         <a href="{{ url_for('export_students', dept_id=request.args.get('dept_id', '')) }}"
-            class="btn btn-secondary d-print-none" title="Download as Excel/CSV">📥 CSV</a>
-        <button onclick="window.print()" class="btn btn-secondary d-print-none" title="Save as PDF">🖨️ Print</button>
+            class="btn-export d-print-none" title="Download as Excel/CSV">📥 CSV</a>
+        <button onclick="window.print()" class="btn-export d-print-none" title="Save as PDF">🖨️ Print</button>
         <a href="{{ url_for('add_student') }}" class="btn btn-primary d-print-none" style="justify-content: center;">+
             Add New Student</a>
     </div>

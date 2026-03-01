@@ -549,6 +549,28 @@ h6 {
     border-top: 2px solid var(--border);
 }
 
+.btn-export {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.btn-export:hover {
+    background: var(--surface);
+    color: var(--text-main);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
 /* Dashboard */
 .dashboard-header {
     margin-bottom: 3rem;
