@@ -886,7 +886,7 @@ def view_fees():
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
                 
-            query += " ORDER BY f.branch ASC, f.class_year ASC, s.name ASC"
+            query += " ORDER BY d.dept_id ASC, f.class_year ASC, s.name ASC"
             
             cursor.execute(query, tuple(params))
             records = cursor.fetchall()
