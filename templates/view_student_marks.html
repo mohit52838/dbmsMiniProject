@@ -4,9 +4,13 @@
 
 {% block content %}
 <div class="list-container">
-    <div class="list-header">
-        <h2>Marks Breakdown for: {{ student.name }}</h2>
-        <a href="{{ url_for('view_students') }}" class="btn btn-secondary">Back to Students</a>
+    <div class="list-header"
+        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="margin: 0;">Marks Breakdown for: {{ student.name }}</h2>
+        <div style="display: flex; gap: 0.5rem;" class="d-print-none">
+            <button onclick="window.print()" class="btn btn-secondary" title="Save as PDF">🖨️ Print</button>
+            <a href="{{ url_for('view_students') }}" class="btn btn-secondary">Back to Students</a>
+        </div>
     </div>
 
     <div class="table-responsive">

@@ -2,10 +2,10 @@
 
 ## 🚀 Powerful New Features
 
-- [ ] **1. Role-Based Access Control (Admin vs. Faculty vs. Student)**
+- [x] **1. Role-Based Access Control (Admin vs. Faculty vs. Student)**
   - *Goal:* Create separate roles. Faculty can only add attendance/marks. Students can log in to view their own grades and fees. Admins have full access.
   
-- [ ] **2. Student Dashboard / Portal**
+- [x] **2. Student Dashboard / Portal**
   - *Goal:* Create a dedicated portal where a student logs in to see a summary of their Attendance %, Academic Grades, and Fee Status in one clean view.
 
 - [ ] **3. Data Export & Reporting (PDF / Excel)**

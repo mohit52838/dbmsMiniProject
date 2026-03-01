@@ -1042,3 +1042,72 @@ h6 {
         align-items: flex-start;
     }
 }
+
+/* --- PRINT / PDF EXPORT STYLES --- */
+@media print {
+    @page {
+        size: landscape;
+        margin: 1cm;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 11pt !important;
+    }
+
+    * {
+        color: black !important;
+        text-shadow: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Hide UI Elements */
+    .navbar,
+    .d-print-none,
+    .btn,
+    .flash-messages,
+    .footer {
+        display: none !important;
+    }
+
+    /* Reset container padding */
+    .container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    /* Ensure tables paginate neatly across PDF pages */
+    table.styled-table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        page-break-inside: auto;
+        font-size: 10pt !important;
+    }
+
+    table.styled-table th,
+    table.styled-table td {
+        border: 1px solid #ccc !important;
+        padding: 6px 8px !important;
+        color: black !important;
+        white-space: nowrap !important;
+    }
+
+    table.styled-table thead {
+        display: table-header-group;
+    }
+
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    /* Strip background from badges */
+    .badge {
+        border: 1px solid #333 !important;
+        color: black !important;
+        background: transparent !important;
+        padding: 2px 6px !important;
+    }
+}

@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, Response
 import db_config
 import os
+import csv
+from io import StringIO
 
 app = Flask(__name__)
 # Use a static secret key so dev-server reloads don't log the user out
@@ -930,6 +932,145 @@ def api_fees_by_branch(branch):
             cursor.close()
             conn.close()
     return jsonify(fees)
+
+@app.route('/export/students')
+def export_students():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    if session.get('role') == 'faculty':
+        conn = db_config.get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT dept_id FROM faculty WHERE faculty_id = %s", (session.get('user_id'),))
+            faculty_dept = cursor.fetchone()
+            if faculty_dept:
+                dept_id_filter = faculty_dept[0]
+            else:
+                dept_id_filter = request.args.get('dept_id')  # Fallback
+            cursor.close()
+            conn.close()
+    else:
+        dept_id_filter = request.args.get('dept_id')
+        
+    conn = db_config.get_db_connection()
+    if not conn:
+        flash('Database connection failed.', 'danger')
+        return redirect(url_for('view_students'))
+        
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT sr.*, d.dept_id
+            FROM student_reports sr
+            LEFT JOIN department d ON sr.branch = d.dept_name
+        """
+        params = []
+        
+        if dept_id_filter:
+            query += " WHERE d.dept_id = %s "
+            params.append(dept_id_filter)
+            
+        query += " ORDER BY d.dept_id ASC, COALESCE(sr.division, 'A') ASC, sr.name ASC "
+        
+        cursor.execute(query, tuple(params))
+        students = cursor.fetchall()
+        
+        def generate():
+            data = StringIO()
+            writer = csv.writer(data)
+            writer.writerow(['Roll No', 'Name', 'PRN', 'Branch', 'Division', 'Email', 'Phone', 'Mother Name', 'Score', 'Attendance %'])
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+            
+            for s in students:
+                score_str = f"{s['total_marks_obtained']} / {s['max_possible_marks']} ({s['percentage']:.2f}%)" if s.get('max_possible_marks') else "0 / 0"
+                att_str = f"{s['attendance_percentage']:.2f}%" if s.get('attendance_percentage') else "0.00%"
+                
+                writer.writerow([
+                    s.get('roll_no', ''), s.get('name', ''), s.get('prn', ''), s.get('branch', ''), s.get('division', ''), 
+                    s.get('email', ''), s.get('phone', ''), s.get('mother_name', ''), score_str, att_str
+                ])
+                yield data.getvalue()
+                data.seek(0)
+                data.truncate(0)
+                
+        return Response(generate(), mimetype='text/csv', headers={'Content-Disposition': 'attachment; filename=students_report.csv'})
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/export/fees')
+def export_fees():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+        
+    branch_filter = request.args.get('branch', '')
+    class_filter = request.args.get('class_year', '')
+    
+    conn = db_config.get_db_connection()
+    if not conn:
+        flash('Database connection failed.', 'danger')
+        return redirect(url_for('view_fees'))
+        
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT f.*, s.name as student_name, s.prn, d.dept_id
+            FROM fees f
+            JOIN student s ON f.student_id = s.student_id
+            LEFT JOIN department d ON f.branch = d.dept_name
+        """
+        params = []
+        conditions = []
+        
+        if session.get('role') == 'faculty':
+            cursor.execute("SELECT faculty.dept_id FROM faculty WHERE faculty.faculty_id = %s", (session.get('user_id'),))
+            faculty_dept = cursor.fetchone()
+            if faculty_dept:
+                conditions.append("d.dept_id = %s")
+                params.append(faculty_dept['dept_id'])
+        elif branch_filter:
+            conditions.append("f.branch = %s")
+            params.append(branch_filter)
+            
+        if class_filter:
+            conditions.append("f.class_year = %s")
+            params.append(class_filter)
+            
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        query += " ORDER BY d.dept_id ASC, f.class_year ASC, s.name ASC"
+        
+        cursor.execute(query, tuple(params))
+        fees = cursor.fetchall()
+        
+        def generate():
+            data = StringIO()
+            writer = csv.writer(data)
+            writer.writerow(['Student Name', 'PRN', 'Branch', 'Class/Div', 'Total Fees', 'Amount Paid', 'Remaining Amount', 'Status', 'Last Payment Date'])
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+            
+            for row in fees:
+                pay_date_str = row.get('payment_date').strftime('%Y-%m-%d') if row.get('payment_date') else ''
+                
+                writer.writerow([
+                    row.get('student_name', ''), row.get('prn', ''), row.get('branch', ''), row.get('class_year', ''),
+                    row.get('total_fees', ''), row.get('amount_paid', ''), row.get('remaining_amount', ''),
+                    row.get('status', ''), pay_date_str
+                ])
+                yield data.getvalue()
+                data.seek(0)
+                data.truncate(0)
+                
+        return Response(generate(), mimetype='text/csv', headers={'Content-Disposition': 'attachment; filename=fees_report.csv'})
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.errorhandler(500)
 def internal_error(exception):
