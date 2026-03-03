@@ -25,19 +25,19 @@ def login():
                 session['logged_in'] = True
                 session['role'] = 'admin'
                 session['user_id'] = 0
-                flash('Welcome built-in Admin!', 'success')
+                flash('Welcome back to the Admin Control Panel, Mohit!', 'success')
                 return redirect(url_for('dashboard'))
             elif username == 'Parth' and password == 'Parth123':
                 session['logged_in'] = True
                 session['role'] = 'admin'
                 session['user_id'] = 0
-                flash('Welcome built-in Admin!', 'success')
+                flash('Welcome back to the Admin Control Panel, Parth!', 'success')
                 return redirect(url_for('dashboard'))
             elif username == 'Kaustubh' and password == 'Kaustubh123':
                 session['logged_in'] = True
                 session['role'] = 'admin'
                 session['user_id'] = 0
-                flash('Welcome built-in Admin!', 'success')
+                flash('Welcome back to the Admin Control Panel, Kaustubh!', 'success')
                 return redirect(url_for('dashboard'))
             else:
                 conn = db_config.get_db_connection()
@@ -50,14 +50,14 @@ def login():
                             session['logged_in'] = True
                             session['role'] = 'admin'
                             session['user_id'] = admin['admin_id']
-                            flash('Login successful!', 'success')
+                            flash(f"Welcome back to the Admin Control Panel, {admin.get('name', 'Admin')}!", 'success')
                             return redirect(url_for('dashboard'))
                     except Exception as e:
                         print(f"DB Auth Error: {e}")
                     finally:
                         cursor.close()
                         conn.close()
-                flash('Invalid Admin credentials.', 'danger')
+                flash('Authentication failed. Please check your credentials and try again.', 'danger')
                 
         # Faculty Role
         elif role == 'Faculty':
@@ -76,14 +76,14 @@ def login():
                         faculty_raw_name = faculty['name']
                         cleaned_name = faculty_raw_name.replace('Mr. ', '').replace('Mrs. ', '').replace('Ms. ', '').replace('Dr. ', '').replace('Prof. ', '').strip()
                         last_name = cleaned_name.split()[-1] if len(cleaned_name.split()) > 0 else cleaned_name
-                        flash(f"Welcome back, Prof. {last_name}!", 'success')
+                        flash(f"Welcome to the Faculty Dashboard, Prof. {last_name}!", 'success')
                         return redirect(url_for('dashboard'))
                 except Exception as e:
                     print(f"Faculty Auth Error: {e}")
                 finally:
                     cursor.close()
                     conn.close()
-            flash('Invalid Faculty credentials.', 'danger')
+            flash('Authentication failed. Please check your credentials and try again.', 'danger')
 
         # Student Role
         elif role == 'Student':
@@ -98,21 +98,21 @@ def login():
                         session['role'] = 'student'
                         session['user_id'] = student['student_id']
                         session['name'] = student['name']
-                        flash(f"Welcome, {student['name'].split()[0]}!", 'success')
+                        flash(f"Welcome back, {student['name'].split()[0]}! Your student portal is ready.", 'success')
                         return redirect(url_for('dashboard'))
                 except Exception as e:
                     print(f"Student Auth Error: {e}")
                 finally:
                     cursor.close()
                     conn.close()
-            flash('Invalid Student credentials.', 'danger')
+            flash('Authentication failed. Please check your credentials and try again.', 'danger')
             
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.', 'info')
+    flash('Successfully logged out. Have a great day!', 'info')
     return redirect(url_for('login'))
 
 @app.route('/dashboard')
@@ -203,6 +203,10 @@ def add_student():
         name = request.form['name']
         email = request.form['email']
         phone = request.form['phone']
+        prn = request.form.get('prn')
+        roll_no = request.form.get('roll_no')
+        mother_name = request.form.get('mother_name')
+        address = request.form.get('address')
         department_id = request.form.get('department_id', 1) # Default to 1
         division = request.form.get('division', 'A')
         
@@ -210,9 +214,9 @@ def add_student():
         if conn:
             cursor = conn.cursor()
             try:
-                # Adapted to real columns without course_id
-                query = "INSERT INTO student (name, email, phone, gender, dob, dept_id, division) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(query, (name, email, phone, 'Other', '2000-01-01', department_id, division))
+                # Adapted to real columns with new missing fields added
+                query = "INSERT INTO student (name, email, phone, gender, dob, dept_id, division, prn, roll_no, mother_name, address) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(query, (name, email, phone, 'Other', '2000-01-01', department_id, division, prn, roll_no, mother_name, address))
                 conn.commit()
                 flash('Student added successfully!', 'success')
                 return redirect(url_for('view_students'))
@@ -596,13 +600,18 @@ def update_student(id):
         name = request.form['name']
         email = request.form['email']
         phone = request.form['phone']
+        prn = request.form.get('prn')
+        roll_no = request.form.get('roll_no')
+        mother_name = request.form.get('mother_name')
+        address = request.form.get('address')
         department_id = request.form.get('department_id')
         division = request.form.get('division', 'A')
         
         if conn:
             cursor = conn.cursor()
             try:
-                cursor.execute("UPDATE student SET name=%s, email=%s, phone=%s, dept_id=%s, division=%s WHERE student_id=%s", (name, email, phone, department_id, division, id))
+                cursor.execute("UPDATE student SET name=%s, email=%s, phone=%s, dept_id=%s, division=%s, prn=%s, roll_no=%s, mother_name=%s, address=%s WHERE student_id=%s", 
+                               (name, email, phone, department_id, division, prn, roll_no, mother_name, address, id))
                 conn.commit()
                 flash('Student updated successfully!', 'success')
                 return redirect(url_for('view_students'))
@@ -1071,6 +1080,256 @@ def export_fees():
     finally:
         cursor.close()
         conn.close()
+
+# ==========================================
+# LIBRARY MANAGEMENT ENDPOINTS
+# ==========================================
+
+@app.route('/library/books', methods=['GET'])
+def old_view_books():
+    return redirect(url_for('library_dashboard', tab='books'))
+
+@app.route('/library/issue_book', methods=['GET'])
+def old_issue_book():
+    return redirect(url_for('library_dashboard', tab='issue'))
+
+@app.route('/library/return_book', methods=['GET'])
+def old_return_book():
+    return redirect(url_for('library_dashboard', tab='returns'))
+
+
+@app.route('/library')
+def library_dashboard():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    active_tab = request.args.get('tab', 'books')
+    conn = db_config.get_db_connection()
+    books = []
+    departments = []
+    issued_books = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+             # 1. Books
+            cursor.execute("SELECT * FROM books ORDER BY title")
+            books = cursor.fetchall()
+            
+            # 2. Departments
+            cursor.execute("SELECT dept_id, dept_name FROM department ORDER BY dept_name")
+            departments = cursor.fetchall()
+            
+            # 3. Issued Books
+            query = """
+                SELECT bi.issue_id, b.title, s.name as student_name, bi.issue_date, bi.due_date 
+                FROM book_issues bi
+                JOIN books b ON bi.book_id = b.book_id
+                JOIN student s ON bi.student_id = s.student_id
+                WHERE bi.status = 'Issued'
+                ORDER BY bi.due_date ASC
+            """
+            cursor.execute(query)
+            issued_books = cursor.fetchall()
+            
+            import datetime
+            today = datetime.date.today()
+            for ib in issued_books:
+                if today > ib['due_date']:
+                    days_late = (today - ib['due_date']).days
+                    ib['current_fine'] = days_late * 10.0
+                else:
+                    ib['current_fine'] = 0.0
+                    
+        except Exception as e:
+            flash(f'Error fetching library data: {e}', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return render_template('library.html', books=books, departments=departments, issued_books=issued_books, active_tab=active_tab)
+
+@app.route('/library/add_book', methods=['POST'])
+def add_book():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    title = request.form['title']
+    author = request.form['author']
+    isbn = request.form.get('isbn', '')
+    try:
+        total_copies = int(request.form.get('total_copies', 1))
+    except ValueError:
+        total_copies = 1
+        
+    conn = db_config.get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        try:
+            query = "INSERT INTO books (title, author, isbn, total_copies, available_copies) VALUES (%s, %s, %s, %s, %s)"
+            cursor.execute(query, (title, author, isbn, total_copies, total_copies))
+            conn.commit()
+            flash('Book added successfully!', 'success')
+        except Exception as e:
+            flash(f'Error adding book: {e}', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
+            
+            
+    return redirect(url_for('library_dashboard', tab='books'))
+
+@app.route('/library/issue_book', methods=['POST'])
+def issue_book():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    conn = db_config.get_db_connection()
+    student_id = request.form.get('student_id')
+    book_id = request.form.get('book_id')
+    
+    if conn:
+        cursor = conn.cursor()
+        try:
+            # Check if book is available
+            cursor.execute("SELECT available_copies FROM books WHERE book_id = %s FOR UPDATE", (book_id,))
+            book = cursor.fetchone()
+            
+            if not book or book[0] <= 0:
+                flash('Book is currently out of stock.', 'danger')
+            else:
+                import datetime
+                issue_date = datetime.date.today()
+                due_date = issue_date + datetime.timedelta(days=14)
+                
+                query_issue = "INSERT INTO book_issues (book_id, student_id, issue_date, due_date, status) VALUES (%s, %s, %s, %s, 'Issued')"
+                cursor.execute(query_issue, (book_id, student_id, issue_date, due_date))
+                
+                query_update = "UPDATE books SET available_copies = available_copies - 1 WHERE book_id = %s"
+                cursor.execute(query_update, (book_id,))
+                
+                conn.commit()
+                flash('Book issued successfully!', 'success')
+        except Exception as e:
+            flash(f'Error issuing book: {e}', 'danger')
+            conn.rollback()
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for('library_dashboard', tab='issue'))
+
+@app.route('/library/return_book', methods=['POST'])
+def return_book():
+    if not session.get('logged_in'): return redirect(url_for('login'))
+    if session.get('role') != 'admin':
+        flash('Access denied.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    conn = db_config.get_db_connection()
+    issue_id = request.form.get('issue_id')
+    
+    if conn:
+        cursor = conn.cursor()
+        try:
+            # Fetch issue details
+            cursor.execute("SELECT book_id, due_date FROM book_issues WHERE issue_id = %s AND status = 'Issued'", (issue_id,))
+            issue = cursor.fetchone()
+            
+            if issue:
+                book_id = issue[0]
+                due_date = issue[1]
+                import datetime
+                return_date = datetime.date.today()
+                
+                fine_amount = 0.0
+                if return_date > due_date:
+                    days_late = (return_date - due_date).days
+                    fine_amount = days_late * 10.0 # Rs. 10 per day late
+                    
+                # Update issue record
+                update_issue = "UPDATE book_issues SET return_date = %s, fine_amount = %s, status = 'Returned' WHERE issue_id = %s"
+                cursor.execute(update_issue, (return_date, fine_amount, issue_id))
+                
+                # Update book copies
+                update_book = "UPDATE books SET available_copies = available_copies + 1 WHERE book_id = %s"
+                cursor.execute(update_book, (book_id,))
+                
+                conn.commit()
+                msg = 'Book returned successfully!'
+                if fine_amount > 0:
+                    msg += f' Late fine applied: Rs. {fine_amount}'
+                flash(msg, 'success' if fine_amount == 0 else 'warning')
+            else:
+                flash('Invalid issue record.', 'danger')
+        except Exception as e:
+            flash(f'Error returning book: {e}', 'danger')
+            conn.rollback()
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return redirect(url_for('library_dashboard', tab='returns'))
+
+@app.route('/student/library')
+def student_library():
+    if not session.get('logged_in') or session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student_id = session.get('user_id')
+    conn = db_config.get_db_connection()
+    issued_books = []
+    past_history = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            # Current issues
+            query_current = """
+                SELECT b.title, b.author, bi.issue_date, bi.due_date 
+                FROM book_issues bi
+                JOIN books b ON bi.book_id = b.book_id
+                WHERE bi.student_id = %s AND bi.status = 'Issued'
+                ORDER BY bi.due_date ASC
+            """
+            cursor.execute(query_current, (student_id,))
+            issued_books = cursor.fetchall()
+            
+            import datetime
+            today = datetime.date.today()
+            for ib in issued_books:
+                if today > ib['due_date']:
+                    days_late = (today - ib['due_date']).days
+                    ib['current_fine'] = days_late * 10.0
+                    ib['overdue'] = True
+                else:
+                    ib['current_fine'] = 0.0
+                    ib['overdue'] = False
+            
+            # Past history
+            query_past = """
+                SELECT b.title, bi.issue_date, bi.return_date, bi.fine_amount 
+                FROM book_issues bi
+                JOIN books b ON bi.book_id = b.book_id
+                WHERE bi.student_id = %s AND bi.status = 'Returned'
+                ORDER BY bi.return_date DESC
+            """
+            cursor.execute(query_past, (student_id,))
+            past_history = cursor.fetchall()
+            
+        except Exception as e:
+            print(f"Error fetching student library data: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return render_template('student_library.html', issued_books=issued_books, past_history=past_history)
 
 @app.errorhandler(500)
 def internal_error(exception):

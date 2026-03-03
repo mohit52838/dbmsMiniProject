@@ -1137,3 +1137,156 @@ h6 {
         padding: 2px 6px !important;
     }
 }
+
+/* ========================================================================= */
+/* Toast Notifications                                                       */
+/* ========================================================================= */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    pointer-events: none;
+    /* Let clicks pass through empty space */
+}
+
+.toast-msg {
+    min-width: 300px;
+    margin-bottom: 0;
+    pointer-events: auto;
+    /* Catch clicks on the toast itself */
+    animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    position: relative;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOutSlide {
+    to {
+        opacity: 0;
+        transform: translateX(100%) scale(0.95);
+    }
+}
+
+
+/* ========================================================================= */
+/* DataTables Theme Overrides                                                */
+/* ========================================================================= */
+.dataTables_wrapper {
+    padding: 1rem 0;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1.5rem;
+    float: right;
+    padding-right: 2rem;
+    /* Align with list-header */
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.75rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: var(--transition);
+    min-width: 250px;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+[data-theme="dark"] .dataTables_wrapper .dataTables_filter input:focus {
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    padding: 1.5rem 2rem 1rem 2rem !important;
+    float: right;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.5em 1em !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border) !important;
+    background: var(--surface) !important;
+    color: var(--text-main) !important;
+    cursor: pointer !important;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--table-hover-bg) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #ffffff !important;
+    box-shadow: var(--shadow-sm);
+}
+
+.dataTables_wrapper .dataTables_info {
+    padding: 1.5rem 2rem 1rem 2rem !important;
+    float: left;
+    color: var(--text-muted) !important;
+    font-size: 0.85rem;
+}
+
+/* Remove default DataTable borders to let styled-table rule */
+table.dataTable.no-footer {
+    border-bottom: none !important;
+}
+
+table.dataTable thead th,
+table.dataTable thead td {
+    border-bottom: 2px solid var(--border) !important;
+}
+
+/* Responsive adjustment for datatables search/pagins */
+@media (max-width: 768px) {
+
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_paginate,
+    .dataTables_wrapper .dataTables_info {
+        float: none !important;
+        text-align: center;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        justify-content: center;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}

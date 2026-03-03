@@ -7,7 +7,9 @@
     <title>{% block title %}College Management System{% endblock %}</title>
     <!-- Modern clean fonts from Google -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
     <script>
         // Set Theme dynamically from local storage before rendering layout (FOUC preventer)
         const savedTheme = localStorage.getItem('theme') || 'light'; // default to light
@@ -50,6 +52,13 @@
             {% if session.get('role') == 'admin' %}
             <a href="{{ url_for('view_faculty') }}"
                 class="{{ 'active' if request.endpoint in ['view_faculty', 'add_faculty'] else '' }}">Faculty</a>
+            <a href="{{ url_for('library_dashboard') }}"
+                class="{{ 'active' if request.endpoint in ['library_dashboard', 'add_book', 'issue_book', 'return_book'] else '' }}">Library</a>
+            {% endif %}
+
+            {% if session.get('role') == 'student' %}
+            <a href="{{ url_for('student_library') }}"
+                class="{{ 'active' if request.endpoint == 'student_library' else '' }}">My Library</a>
             {% endif %}
 
             <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
@@ -58,18 +67,18 @@
     {% endif %}
 
     <main class="container">
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
+        <!-- Floating Toast Messages -->
+        <div class="toast-container" id="toastContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
             {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-                {{ message }}
+            <div class="alert alert-{{ category }} toast-msg">
+                <span>{{ message }}</span>
             </div>
             {% endfor %}
+            {% endif %}
+            {% endwith %}
         </div>
-        {% endif %}
-        {% endwith %}
 
         {% block content %}{% endblock %}
     </main>
@@ -105,6 +114,32 @@
                 themeIconSpan.innerText = newTheme === 'dark' ? '☀️' : '🌙';
             });
         }
+    </script>
+
+    <!-- jQuery & DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Auto-dismiss Toast Notifications after 2.5 seconds
+            setTimeout(function () {
+                $('.toast-msg').each(function () {
+                    $(this).css('animation', 'fadeOutSlide 0.4s forwards');
+                    setTimeout(() => $(this).remove(), 400);
+                });
+            }, 2500);
+
+            // Initialize DataTables
+            $('.styled-table').DataTable({
+                "pageLength": 10,
+                "lengthChange": false, // Hide "Show 10 entries" dropdown
+                "language": {
+                    "search": "",
+                    "searchPlaceholder": "Search records..."
+                }
+            });
+        });
     </script>
 </body>
 

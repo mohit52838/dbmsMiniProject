@@ -8,20 +8,20 @@
 - [x] **2. Student Dashboard / Portal**
   - *Goal:* Create a dedicated portal where a student logs in to see a summary of their Attendance %, Academic Grades, and Fee Status in one clean view.
 
-- [ ] **3. Data Export & Reporting (PDF / Excel)**
+- [x] **3. Data Export & Reporting (PDF / Excel)**
   - *Goal:* Add a "Download Report" button on the Students, Marks, and Fees pages to export lists of fee defaulters, top-performing students, or low-attendance students to CSV or PDF.
 
-- [ ] **4. Email / SMS Notification System**
+- [x] **4. Email / SMS Notification System**
   - *Goal:* Integrate an email service to automatically alert students when their fees are due, or when their attendance drops below the 75% threshold.
 
-- [ ] **5. Library Management Module**
+- [x] **5. Library Management Module**
   - *Goal:* Add a module to track college library books, scan book IDs, issue books to students, and calculate late fines.
 
 ---
 
 ## 🎨 Modern UI Improvements
 
-- [ ] **1. Interactive Dashboard Charts (Chart.js)**
+- [x] **1. Interactive Dashboard Charts (Chart.js)**
   - *Goal:* Integrate Chart.js to show a pie chart of Fee Status, a bar chart of Average Marks by Branch, or a line graph of Attendance Trends.
 
 - [ ] **2. Search Bars & Pagination**

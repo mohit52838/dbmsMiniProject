@@ -48,8 +48,14 @@
             <div class="action-icon">📝</div>
             <span>Enter Marks</span>
         </a>
+        <a href="{{ url_for('library_dashboard') }}" class="action-card">
+            <div class="action-icon">📚</div>
+            <span>Library Management</span>
+        </a>
     </div>
 </div>
+
+
 {% endif %}
 
 {% if session.get('role') == 'student' %}
@@ -79,6 +85,17 @@
             <p class="stat-number" style="font-size: 1.5rem;">{{ student_stats.fee_status|default('N/A') }}</p>
         </div>
     </div>
+
+    <a href="{{ url_for('student_library') }}" style="text-decoration: none; color: inherit; display: block;">
+        <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;"
+            onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div class="stat-icon" style="color: var(--accent);">📚</div>
+            <div class="stat-info">
+                <h3>Library</h3>
+                <p class="stat-number" style="font-size: 1.5rem; text-transform: uppercase;">Tracker</p>
+            </div>
+        </div>
+    </a>
 </div>
 
 <div class="list-container mt-4"
