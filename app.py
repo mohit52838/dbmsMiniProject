@@ -3,13 +3,27 @@ import db_config
 import os
 import csv
 from io import StringIO
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 # Use a static secret key so dev-server reloads don't log the user out
 app.secret_key = os.environ.get('SECRET_KEY', 'super_secret_static_key_for_development')
 
+UPLOAD_FOLDER = os.path.join('static', 'uploads', 'profiles')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 # Initialize DB View on startup
 db_config.create_student_reports_view()
+
+def save_profile_pic(request_file_obj, default='default_avatar.png'):
+    if request_file_obj and request_file_obj.filename != '':
+        filename = secure_filename(request_file_obj.filename)
+        # Ensure we don't overwrite if folks have the same image name (append timestamp or similar if needed later, but simple for now)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        request_file_obj.save(filepath)
+        return filename
+    return default
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -210,13 +224,17 @@ def add_student():
         department_id = request.form.get('department_id', 1) # Default to 1
         division = request.form.get('division', 'A')
         
+        # Profile Picture logic
+        profile_file = request.files.get('profile_pic')
+        profile_pic_name = save_profile_pic(profile_file)
+        
         conn = db_config.get_db_connection()
         if conn:
             cursor = conn.cursor()
             try:
                 # Adapted to real columns with new missing fields added
-                query = "INSERT INTO student (name, email, phone, gender, dob, dept_id, division, prn, roll_no, mother_name, address) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(query, (name, email, phone, 'Other', '2000-01-01', department_id, division, prn, roll_no, mother_name, address))
+                query = "INSERT INTO student (name, email, phone, gender, dob, dept_id, division, prn, roll_no, mother_name, address, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(query, (name, email, phone, 'Other', '2000-01-01', department_id, division, prn, roll_no, mother_name, address, profile_pic_name))
                 conn.commit()
                 flash('Student added successfully!', 'success')
                 return redirect(url_for('view_students'))
@@ -355,9 +373,13 @@ def add_faculty():
         if conn:
             cursor = conn.cursor()
             try:
+                # Profile Picture logic
+                profile_file = request.files.get('profile_pic')
+                profile_pic_name = save_profile_pic(profile_file)
+                
                 # Adjust to real schema
-                query = "INSERT INTO faculty (name, email, phone, dept_id) VALUES (%s, %s, %s, %s)"
-                cursor.execute(query, (name, email, '0000000000', department))
+                query = "INSERT INTO faculty (name, email, phone, dept_id, profile_pic) VALUES (%s, %s, %s, %s, %s)"
+                cursor.execute(query, (name, email, '0000000000', department, profile_pic_name))
                 conn.commit()
                 flash('Faculty added successfully!', 'success')
                 return redirect(url_for('view_faculty'))
@@ -395,7 +417,7 @@ def view_faculty():
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT f.faculty_id, f.name, f.email, f.phone, COALESCE(d.dept_name, 'Unassigned Branch') as department
+                SELECT f.faculty_id, f.name, f.email, f.phone, f.profile_pic, COALESCE(d.dept_name, 'Unassigned Branch') as department
                 FROM faculty f
                 LEFT JOIN department d ON f.dept_id = d.dept_id
                 ORDER BY d.dept_id, f.faculty_id
@@ -610,8 +632,15 @@ def update_student(id):
         if conn:
             cursor = conn.cursor()
             try:
-                cursor.execute("UPDATE student SET name=%s, email=%s, phone=%s, dept_id=%s, division=%s, prn=%s, roll_no=%s, mother_name=%s, address=%s WHERE student_id=%s", 
-                               (name, email, phone, department_id, division, prn, roll_no, mother_name, address, id))
+                # Profile Picture logic
+                profile_file = request.files.get('profile_pic')
+                if profile_file and profile_file.filename != '':
+                    profile_pic_name = save_profile_pic(profile_file)
+                    cursor.execute("UPDATE student SET name=%s, email=%s, phone=%s, dept_id=%s, division=%s, prn=%s, roll_no=%s, mother_name=%s, address=%s, profile_pic=%s WHERE student_id=%s", 
+                                   (name, email, phone, department_id, division, prn, roll_no, mother_name, address, profile_pic_name, id))
+                else:
+                    cursor.execute("UPDATE student SET name=%s, email=%s, phone=%s, dept_id=%s, division=%s, prn=%s, roll_no=%s, mother_name=%s, address=%s WHERE student_id=%s", 
+                                   (name, email, phone, department_id, division, prn, roll_no, mother_name, address, id))
                 conn.commit()
                 flash('Student updated successfully!', 'success')
                 return redirect(url_for('view_students'))

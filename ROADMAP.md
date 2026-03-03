@@ -24,17 +24,17 @@
 - [x] **1. Interactive Dashboard Charts (Chart.js)**
   - *Goal:* Integrate Chart.js to show a pie chart of Fee Status, a bar chart of Average Marks by Branch, or a line graph of Attendance Trends.
 
-- [ ] **2. Search Bars & Pagination**
+- [x] **2. Search Bars & Pagination**
   - *Goal:* Add real-time search bars and page numbers (pagination) to Data Tables to make scrolling through massive data sets faster.
 
-- [ ] **3. Floating "Toast" Notifications**
+- [x] **3. Floating "Toast" Notifications**
   - *Goal:* Convert flash messages into modern "Toast" notifications that slide in cleanly at the bottom right of the screen and disappear after 3 seconds.
 
-- [ ] **4. Add/Edit using Modal Popups**
+- [x] **4. Add/Edit using Modal Popups**
   - *Goal:* Convert full-page forms (like /add_fees or /update_student) into sleek modal overlays right over the table.
 
-- [ ] **5. Profile Pictures**
+- [x] **5. Profile Pictures**
   - *Goal:* Add image upload functionality to display small circular avatars next to Student and Faculty names in the lists.
 
-- [ ] **6. Card-Based Mobile Layouts**
+- [x] **6. Card-Based Mobile Layouts**
   - *Goal:* Write CSS media queries to convert table rows into vertical "Cards" when viewed on smartphones.

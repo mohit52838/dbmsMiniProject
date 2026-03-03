@@ -71,6 +71,7 @@ def create_student_reports_view():
         s.phone,
         s.mother_name,
         s.address,
+        s.profile_pic,
         d.dept_name as branch,
         s.division,
         COALESCE(m.total_marks_obtained, 0) AS total_marks_obtained,

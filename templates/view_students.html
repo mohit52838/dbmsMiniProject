@@ -82,18 +82,25 @@
             <tbody>
                 {% for report in branch_students %}
                 <tr>
-                    <td>{{ report.roll_no }}</td>
-                    <td>
-                        <strong>{{ report.name }}</strong>
-                        <br>
-                        <small class="text-muted">{{ report.prn }}</small>
+                    <td data-label="Roll No">{{ report.roll_no }}</td>
+                    <td data-label="Name">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + (report.profile_pic if report.profile_pic else 'default_avatar.png')) }}"
+                                alt="Avatar"
+                                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border);">
+                            <div>
+                                <strong>{{ report.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ report.prn }}</small>
+                            </div>
+                        </div>
                     </td>
-                    <td>
+                    <td data-label="Score">
                         {{ report.total_marks_obtained }} / {{ report.max_possible_marks }}
                         <br>
                         <small class="text-muted">{{ "%.2f"|format(report.percentage) }}%</small>
                     </td>
-                    <td>
+                    <td data-label="Grade">
                         {% if report.percentage >= 90 %}
                         <span class="badge bg-success">A</span>
                         {% elif report.percentage >= 75 %}
@@ -106,7 +113,7 @@
                         <span class="badge bg-danger">F</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td data-label="Attendance %">
                         <div class="progress-container">
                             <div class="progress-bar {% if report.attendance_percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
                                 style="width: {{ report.attendance_percentage }}%">
@@ -114,7 +121,7 @@
                             <span>{{ report.attendance_percentage }}%</span>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Actions">
                         <div class="action-buttons">
                             <button type="button" class="btn btn-sm btn-secondary"
                                 onclick="showStudentDetails('{{ report.name|escape }}', '{{ report.prn|escape }}', '{{ report.email|escape }}', '{{ report.phone|escape }}', '{{ report.mother_name|escape }}', '{{ report.address|escape }}', '{{ report.roll_no }}', '{{ branch|escape }}', '{{ division|escape }}')">Details</button>

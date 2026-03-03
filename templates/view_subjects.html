@@ -25,9 +25,9 @@
             <tbody>
                 {% for subject in dept_subjects %}
                 <tr>
-                    <td>{{ subject.subject_id }}</td>
-                    <td><strong>{{ subject.subject_name }}</strong></td>
-                    <td>
+                    <td data-label="Subject ID">{{ subject.subject_id }}</td>
+                    <td data-label="Subject Name"><strong>{{ subject.subject_name }}</strong></td>
+                    <td data-label="Teaching Faculty">
                         {% if subject.faculty_name %}
                         <span class="badge bg-info" style="background-color: var(--secondary)">{{ subject.faculty_name
                             }}</span>

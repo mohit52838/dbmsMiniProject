@@ -1042,20 +1042,56 @@ h6 {
         padding-right: 1rem;
     }
 
-    /* Table Fixes */
+    /* Mobile Table Cards */
     .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        /* Smooth scrolling on iOS */
-        border: 1px solid var(--border);
-        /* Visually cap the scrolling area */
-        border-radius: var(--radius);
+        border: none;
+        background: transparent;
+        overflow-x: hidden;
     }
 
-    .styled-table {
-        min-width: 600px;
-        /* Ensure table keeps structure and triggers scroll */
+    .styled-table,
+    .styled-table tbody,
+    .styled-table tr,
+    .styled-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .styled-table thead {
+        display: none;
+    }
+
+    .styled-table tr {
+        margin-bottom: 1.25rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        padding: 0.5rem;
+    }
+
+    .styled-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 0.5rem;
+    }
+
+    .styled-table td:last-child {
+        border-bottom: none;
+    }
+
+    /* Pull the label from the HTML attribute `data-label` */
+    .styled-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        margin-right: 1rem;
     }
 
     .list-header {

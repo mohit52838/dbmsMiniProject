@@ -41,11 +41,11 @@
             <tbody>
                 {% for mark in marks %}
                 <tr>
-                    <td><strong>{{ mark.subject_name }}</strong></td>
-                    <td>{{ mark.internal_marks }}</td>
-                    <td>{{ mark.external_marks }}</td>
-                    <td>{{ mark.total }} / 100</td>
-                    <td>
+                    <td data-label="Subject"><strong>{{ mark.subject_name }}</strong></td>
+                    <td data-label="Internal Marks">{{ mark.internal_marks }}</td>
+                    <td data-label="External Marks">{{ mark.external_marks }}</td>
+                    <td data-label="Total">{{ mark.total }} / 100</td>
+                    <td data-label="Grade">
                         {% if mark.grade == 'A' %}
                         <span class="badge bg-success">A</span>
                         {% elif mark.grade == 'B' %}

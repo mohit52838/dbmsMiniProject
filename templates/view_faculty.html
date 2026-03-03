@@ -27,10 +27,17 @@
             <tbody>
                 {% for faculty in dept_faculties %}
                 <tr>
-                    <td>{{ faculty.faculty_id }}</td>
-                    <td><strong>{{ faculty.name }}</strong></td>
-                    <td class="text-muted">{{ faculty.email }}</td>
-                    <td class="text-muted">{{ faculty.phone }}</td>
+                    <td data-label="ID">{{ faculty.faculty_id }}</td>
+                    <td data-label="Name">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + (faculty.profile_pic if faculty.profile_pic else 'default_avatar.png')) }}"
+                                alt="Avatar"
+                                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border);">
+                            <strong>{{ faculty.name }}</strong>
+                        </div>
+                    </td>
+                    <td data-label="Email" class="text-muted">{{ faculty.email }}</td>
+                    <td data-label="Phone" class="text-muted">{{ faculty.phone }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

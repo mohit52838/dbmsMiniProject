@@ -103,18 +103,21 @@
                 {% for row in records %}
                 <tr
                     class="{% if row.status == 'Paid' %}row-paid{% elif row.status == 'Partial' %}row-partial{% else %}row-unpaid{% endif %}">
-                    <td><strong>{{ row.student_name }}</strong></td>
-                    <td style="font-family: monospace; font-size: 0.95rem;">{{ "%.2f"|format(row.total_fees) }}</td>
-                    <td style="font-family: monospace; font-size: 0.95rem;">{{ "%.2f"|format(row.amount_paid) }}</td>
-                    <td style="font-family: monospace; font-size: 0.95rem; font-weight: 600;">{{
+                    <td data-label="Student Name"><strong>{{ row.student_name }}</strong></td>
+                    <td data-label="Total Fees (₹)" style="font-family: monospace; font-size: 0.95rem;">{{
+                        "%.2f"|format(row.total_fees) }}</td>
+                    <td data-label="Amount Paid (₹)" style="font-family: monospace; font-size: 0.95rem;">{{
+                        "%.2f"|format(row.amount_paid) }}</td>
+                    <td data-label="Remaining (₹)"
+                        style="font-family: monospace; font-size: 0.95rem; font-weight: 600;">{{
                         "%.2f"|format(row.remaining_amount) }}</td>
-                    <td>
+                    <td data-label="Status">
                         <span
                             class="badge {% if row.status == 'Paid' %}bg-success{% elif row.status == 'Partial' %}bg-warning{% else %}bg-danger{% endif %}">
                             {{ row.status }}
                         </span>
                     </td>
-                    <td class="text-muted">{{ row.payment_date or 'N/A' }}</td>
+                    <td data-label="Last Payment" class="text-muted">{{ row.payment_date or 'N/A' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
