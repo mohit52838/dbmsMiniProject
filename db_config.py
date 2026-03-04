@@ -62,9 +62,10 @@ def create_student_reports_view():
     # Create a simplified view based on typical schema for this system
     view_query = """
     CREATE OR REPLACE VIEW student_reports AS
-    SELECT 
+    SELECT
         s.student_id, 
         s.name, 
+        s.gender,
         s.prn,
         s.roll_no,
         s.email,

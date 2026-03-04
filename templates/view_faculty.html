@@ -31,10 +31,14 @@
                     <td data-label="ID">{{ faculty.faculty_id }}</td>
                     <td data-label="Name">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            {% set fallback_avatar = 'female_faculty.png' if faculty.gender == 'Female' else
+                            {% set is_default = not faculty.profile_pic or faculty.profile_pic in ['default_avatar.png',
+                            'male_faculty.png', 'female_faculty.png', 'default_male_1.png', 'default_female_1.png'] %}
+                            {% if is_default %}
+                            {% set final_avatar = 'female_faculty.png' if faculty.gender == 'Female' else
                             'male_faculty.png' %}
-                            {% set final_avatar = faculty.profile_pic if faculty.profile_pic and faculty.profile_pic !=
-                            'default_avatar.png' else fallback_avatar %}
+                            {% else %}
+                            {% set final_avatar = faculty.profile_pic %}
+                            {% endif %}
                             {% set final_avatar_url = url_for('static', filename='uploads/profiles/' ~ final_avatar) %}
                             <img src="{{ final_avatar_url }}" alt="Faculty Avatar"
                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border);">
