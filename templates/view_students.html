@@ -88,9 +88,9 @@
                             {% set avatar_img = report.profile_pic %}
                             {% if not avatar_img or avatar_img == 'default_avatar.png' %}
                             {% if report.gender == 'Female' %}
-                            {% set avatar_img = 'default_female.png' %}
+                            {% set avatar_img = 'default_female_1.png' %}
                             {% else %}
-                            {% set avatar_img = 'default_male.png' %}
+                            {% set avatar_img = 'default_male_1.png' %}
                             {% endif %}
                             {% endif %}
                             <img src="{{ url_for('static', filename='uploads/profiles/' + avatar_img) }}"

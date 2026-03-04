@@ -232,9 +232,9 @@ def add_student():
         # Determine the logical default based on gender if none uploaded
         if profile_pic_name == 'default_avatar.png':
             if gender == 'Female':
-                profile_pic_name = 'default_female.png'
+                profile_pic_name = 'default_female_1.png'
             else:
-                profile_pic_name = 'default_male.png'
+                profile_pic_name = 'default_male_1.png'
         
         conn = db_config.get_db_connection()
         if conn:

@@ -22,9 +22,9 @@
                 {% set current_avatar = student.profile_pic %}
                 {% if not current_avatar or current_avatar == 'default_avatar.png' %}
                 {% if student.gender == 'Female' %}
-                {% set current_avatar = 'default_female.png' %}
+                {% set current_avatar = 'default_female_1.png' %}
                 {% else %}
-                {% set current_avatar = 'default_male.png' %}
+                {% set current_avatar = 'default_male_1.png' %}
                 {% endif %}
                 {% endif %}
                 <small
