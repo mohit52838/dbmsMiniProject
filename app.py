@@ -223,10 +223,18 @@ def add_student():
         address = request.form.get('address')
         department_id = request.form.get('department_id', 1) # Default to 1
         division = request.form.get('division', 'A')
+        gender = request.form.get('gender', 'Other')
         
         # Profile Picture logic
         profile_file = request.files.get('profile_pic')
         profile_pic_name = save_profile_pic(profile_file)
+        
+        # Determine the logical default based on gender if none uploaded
+        if profile_pic_name == 'default_avatar.png':
+            if gender == 'Female':
+                profile_pic_name = 'default_female.png'
+            else:
+                profile_pic_name = 'default_male.png'
         
         conn = db_config.get_db_connection()
         if conn:
@@ -234,7 +242,7 @@ def add_student():
             try:
                 # Adapted to real columns with new missing fields added
                 query = "INSERT INTO student (name, email, phone, gender, dob, dept_id, division, prn, roll_no, mother_name, address, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-                cursor.execute(query, (name, email, phone, 'Other', '2000-01-01', department_id, division, prn, roll_no, mother_name, address, profile_pic_name))
+                cursor.execute(query, (name, email, phone, gender, '2000-01-01', department_id, division, prn, roll_no, mother_name, address, profile_pic_name))
                 conn.commit()
                 flash('Student added successfully!', 'success')
                 return redirect(url_for('view_students'))

@@ -20,6 +20,8 @@ def seed_from_modules():
     # We truncate tables manually in order of clearing
     try:
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+        cursor.execute("TRUNCATE TABLE book_issues;")
+        cursor.execute("TRUNCATE TABLE books;")
         cursor.execute("TRUNCATE TABLE fees;")
         cursor.execute("TRUNCATE TABLE marks;")
         cursor.execute("TRUNCATE TABLE attendance;")
@@ -58,6 +60,18 @@ def seed_from_modules():
         print("Inserting fees...")
         q_fees = "INSERT INTO fees (fee_id, student_id, branch, class_year, total_fees, amount_paid, remaining_amount, status, payment_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
         cursor.executemany(q_fees, fees_data.fees_records)
+
+        # 5a. Books
+        import books_data
+        print("Inserting books...")
+        q_books = "INSERT INTO books (book_id, title, author, isbn, total_copies, available_copies) VALUES (%s, %s, %s, %s, %s, %s)"
+        cursor.executemany(q_books, books_data.books_records)
+
+        # 5b. Book Issues
+        import book_issues_data
+        print("Inserting book issues...")
+        q_issues = "INSERT INTO book_issues (issue_id, book_id, student_id, issue_date, due_date, return_date, fine_amount, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+        cursor.executemany(q_issues, book_issues_data.book_issues_records)
 
         # 6. Marks (Part 1)
         import marks_data_part_1

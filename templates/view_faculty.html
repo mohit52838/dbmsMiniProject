@@ -30,8 +30,16 @@
                     <td data-label="ID">{{ faculty.faculty_id }}</td>
                     <td data-label="Name">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="{{ url_for('static', filename='uploads/profiles/' + (faculty.profile_pic if faculty.profile_pic else 'default_avatar.png')) }}"
-                                alt="Avatar"
+                            {% set avatar_img = faculty.profile_pic %}
+                            {% if not avatar_img or avatar_img == 'default_avatar.png' %}
+                            {% if faculty.name.startswith('Mrs.') or faculty.name.startswith('Ms.') %}
+                            {% set avatar_img = 'default_female.png' %}
+                            {% else %}
+                            {% set avatar_img = 'default_male.png' %}
+                            {% endif %}
+                            {% endif %}
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + avatar_img) }}"
+                                alt="Faculty Avatar" title="Icons made by Sudowoodo from www.flaticon.com"
                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border);">
                             <strong>{{ faculty.name }}</strong>
                         </div>

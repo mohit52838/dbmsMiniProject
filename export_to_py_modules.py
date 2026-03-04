@@ -29,6 +29,8 @@ def export_db_to_python_modules():
         'subject': 'subjects_data.py',
         'department': 'department_data.py',
         'fees': 'fees_data.py',
+        'books': 'books_data.py',
+        'book_issues': 'book_issues_data.py',
     }
     
     os.makedirs('demo_data_py', exist_ok=True)
