@@ -389,7 +389,8 @@ def add_faculty():
             try:
                 # Profile Picture logic
                 profile_file = request.files.get('profile_pic')
-                profile_pic_name = save_profile_pic(profile_file)
+                default_pic = 'female_faculty.png' if gender == 'Female' else 'male_faculty.png'
+                profile_pic_name = save_profile_pic(profile_file, default=default_pic)
                 
                 # Adjust to real schema
                 query = """

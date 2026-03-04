@@ -31,8 +31,12 @@
                     <td data-label="ID">{{ faculty.faculty_id }}</td>
                     <td data-label="Name">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <img src="{{ url_for('static', filename='uploads/profiles/' + (faculty.profile_pic if faculty.profile_pic and faculty.profile_pic != 'default_avatar.png' else 'default_avatar.png')) }}"
-                                alt="Faculty Avatar"
+                            {% set fallback_avatar = 'female_faculty.png' if faculty.gender == 'Female' else
+                            'male_faculty.png' %}
+                            {% set final_avatar = faculty.profile_pic if faculty.profile_pic and faculty.profile_pic !=
+                            'default_avatar.png' else fallback_avatar %}
+                            {% set final_avatar_url = url_for('static', filename='uploads/profiles/' ~ final_avatar) %}
+                            <img src="{{ final_avatar_url }}" alt="Faculty Avatar"
                                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border);">
                             <strong>{{ faculty.name }}</strong>
                         </div>
@@ -49,8 +53,8 @@
                             '{{ faculty.gender | escape }}',
                             '{{ faculty.dob | escape }}',
                             '{{ faculty.join_date | escape }}',
-                            '{{ faculty.address | escape }}'
-                        )">Details</button>
+                            '{{ faculty.address | escape }}',
+                            '{{ final_avatar_url }}' )">Details</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -87,8 +91,9 @@
         <div style="padding: 0 2rem 2rem 2rem; position: relative; margin-top: -30px;">
             <!-- Avatar Circle -->
             <div
-                style="width: 80px; height: 80px; background: var(--surface); border-radius: 50%; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 4px solid var(--surface); color: var(--primary);">
-                👨‍🏫
+                style="width: 80px; height: 80px; background: var(--surface); border-radius: 50%; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 4px solid var(--surface); color: var(--primary); overflow: hidden;">
+                <img id="modalFacAvatar" src="" alt="Faculty Profile"
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
             </div>
 
             <!-- Detail Pills -->
@@ -189,7 +194,7 @@
 </style>
 
 <script>
-    function openFacultyModal(name, email, phone, dept, designation, gender, dob, joinDate, address) {
+    function openFacultyModal(name, email, phone, dept, designation, gender, dob, joinDate, address, avatarUrl) {
         document.getElementById('modalFacName').textContent = name;
         document.getElementById('modalFacDesignation').textContent = designation && designation !== 'None' ? designation : 'Faculty';
         document.getElementById('modalFacDept').textContent = dept;
@@ -202,6 +207,9 @@
         let addrEl = document.getElementById('modalFacAddress');
         addrEl.textContent = address && address !== 'None' ? address : 'N/A';
         addrEl.title = address && address !== 'None' ? address : 'N/A';
+
+        // Update the Floating Avatar Bubble
+        document.getElementById('modalFacAvatar').src = avatarUrl;
 
         document.getElementById('facultyDetailsModal').style.display = 'flex';
     }
