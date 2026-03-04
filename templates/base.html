@@ -131,12 +131,26 @@
             }, 2500);
 
             // Initialize DataTables
-            $('.styled-table').DataTable({
+            var table = $('.styled-table').DataTable({
                 "pageLength": 10,
                 "lengthChange": false, // Hide "Show 10 entries" dropdown
                 "language": {
                     "search": "",
                     "searchPlaceholder": "Search records..."
+                }
+            });
+
+            // Temporarily disable pagination on print
+            window.addEventListener("beforeprint", function () {
+                if (table && $.fn.DataTable.isDataTable('.styled-table')) {
+                    table.page.len(-1).draw('page');
+                }
+            });
+
+            // Restore pagination after print
+            window.addEventListener("afterprint", function () {
+                if (table && $.fn.DataTable.isDataTable('.styled-table')) {
+                    table.page.len(10).draw('page');
                 }
             });
         });
