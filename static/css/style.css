@@ -977,7 +977,7 @@ h6 {
 }
 
 /* Responsive Layout */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .navbar {
         padding: 1rem 1.5rem;
         flex-direction: column;
@@ -1308,7 +1308,7 @@ table.dataTable thead td {
 }
 
 /* Responsive adjustment for datatables search/pagins */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
 
     .dataTables_wrapper .dataTables_filter,
     .dataTables_wrapper .dataTables_paginate,
