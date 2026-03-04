@@ -22,6 +22,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,6 +39,19 @@
                     </td>
                     <td data-label="Email" class="text-muted">{{ faculty.email }}</td>
                     <td data-label="Phone" class="text-muted">{{ faculty.phone }}</td>
+                    <td data-label="Actions">
+                        <button class="btn btn-sm btn-info" style="color:white;" onclick="showFacultyDetails(
+                            '{{ faculty.name | escape }}',
+                            '{{ faculty.email | escape }}',
+                            '{{ faculty.phone | escape }}',
+                            '{{ dept | escape }}',
+                            '{{ faculty.designation | escape }}',
+                            '{{ faculty.gender | escape }}',
+                            '{{ faculty.dob | escape }}',
+                            '{{ faculty.join_date | escape }}',
+                            '{{ faculty.address | escape }}'
+                        )">Details</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -49,4 +63,49 @@
     <div class="text-center" style="padding: 2rem;">No faculty found.</div>
 </div>
 {% endfor %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function showFacultyDetails(name, email, phone, dept, designation, gender, dob, joinDate, address) {
+        Swal.fire({
+            title: `<div style="text-align: left; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
+                        <h3 style="margin:0; color: #1e293b; font-weight: 700;">${name}</h3>
+                        <p style="margin:5px 0 0 0; color: #64748b; font-size: 0.9em;">Faculty Profile</p>
+                    </div>`,
+            html: `
+            <div style="text-align: left; font-size: 0.95em; color: var(--text-color);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div><strong style="color: #475569;">Email:</strong><br>${email}</div>
+                    <div><strong style="color: #475569;">Phone:</strong><br>${phone || 'N/A'}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div><strong style="color: #475569;">Department:</strong><br>${dept}</div>
+                    <div><strong style="color: #475569;">Designation:</strong><br>${designation || 'N/A'}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div><strong style="color: #475569;">Gender:</strong><br>${gender || 'N/A'}</div>
+                    <div><strong style="color: #475569;">Date of Birth:</strong><br>${dob || 'N/A'}</div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #475569;">Join Date:</strong><br>${joinDate || 'N/A'}
+                </div>
+                <div>
+                    <strong style="color: #475569;">Home Address:</strong><br>
+                    <div style="background-color: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 5px; border: 1px solid #e2e8f0;">
+                        ${address || 'No address provided...'}
+                    </div>
+                </div>
+            </div>
+            `,
+            width: '450px',
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Close Profile',
+            confirmButtonColor: '#3b82f6',
+            padding: '2rem',
+            customClass: {
+                popup: 'rounded-popup'
+            }
+        });
+    }
+</script>
 {% endblock %}

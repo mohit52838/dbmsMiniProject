@@ -373,9 +373,15 @@ def add_faculty():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        name = request.form['name']
-        department = request.form['department']
-        email = request.form['email']
+        name = request.form.get('name')
+        department = request.form.get('department')
+        email = request.form.get('email')
+        phone = request.form.get('phone', '')
+        gender = request.form.get('gender', 'Male')
+        dob = request.form.get('dob', '1980-01-01')
+        address = request.form.get('address', '')
+        designation = request.form.get('designation', 'Faculty')
+        join_date = request.form.get('join_date', '2024-01-01')
         
         conn = db_config.get_db_connection()
         if conn:
@@ -386,8 +392,12 @@ def add_faculty():
                 profile_pic_name = save_profile_pic(profile_file)
                 
                 # Adjust to real schema
-                query = "INSERT INTO faculty (name, email, phone, dept_id, profile_pic) VALUES (%s, %s, %s, %s, %s)"
-                cursor.execute(query, (name, email, '0000000000', department, profile_pic_name))
+                query = """
+                    INSERT INTO faculty 
+                    (name, email, phone, dept_id, profile_pic, gender, dob, address, designation, join_date) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query, (name, email, phone, department, profile_pic_name, gender, dob, address, designation, join_date))
                 conn.commit()
                 flash('Faculty added successfully!', 'success')
                 return redirect(url_for('view_faculty'))
@@ -425,7 +435,7 @@ def view_faculty():
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT f.faculty_id, f.name, f.email, f.phone, f.profile_pic, COALESCE(d.dept_name, 'Unassigned Branch') as department
+                SELECT f.*, COALESCE(d.dept_name, 'Unassigned Branch') as department
                 FROM faculty f
                 LEFT JOIN department d ON f.dept_id = d.dept_id
                 ORDER BY d.dept_id, f.faculty_id

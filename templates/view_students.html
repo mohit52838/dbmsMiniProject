@@ -124,7 +124,7 @@
                     <td data-label="Attendance %">
                         <div class="progress-container">
                             <div class="progress-bar {% if report.attendance_percentage < 75 %}bg-danger{% else %}bg-success{% endif %}"
-                                style="width: {{ report.attendance_percentage }}%">
+                                style="--progress-width: {{ report.attendance_percentage }}%; width: var(--progress-width);">
                             </div>
                             <span>{{ report.attendance_percentage }}%</span>
                         </div>

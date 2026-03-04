@@ -32,6 +32,45 @@
                 <input type="email" id="email" name="email" required placeholder="jane@college.edu">
             </div>
             <div class="col">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" name="phone" required placeholder="9876543210" pattern="\d{10}">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="col">
+                <label for="designation">Designation</label>
+                <input type="text" id="designation" name="designation" required
+                    placeholder="Assistant Professor, HOD, etc.">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob" name="dob" required>
+            </div>
+            <div class="col">
+                <label for="join_date">Join Date</label>
+                <input type="date" id="join_date" name="join_date" required>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col">
+                <label for="address">Home Address</label>
+                <input type="text" id="address" name="address" required placeholder="Enter full address">
+            </div>
+            <div class="col">
                 <label for="profile_pic">Profile Picture (Optional)</label>
                 <input type="file" id="profile_pic" name="profile_pic" accept="image/*">
             </div>
